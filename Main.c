@@ -30,9 +30,13 @@ int main(){
 
     printf("decimal: %s\n", decimal);*/
 
-	prime_Gen(10, d);
-    prime_Gen(30, d);
-    prime_Gen(60, d);
+	//prime_Gen(10, d);
+    //prime_Gen(30, d);
+    //prime_Gen(60, d);
+
+    BIGNUM *bn = BN_new();
+    BN_set_word(bn, 12);
+    Next_prime(bn);
 
     return 0;
 }
