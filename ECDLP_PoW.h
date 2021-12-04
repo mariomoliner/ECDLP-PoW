@@ -4,6 +4,10 @@
 #include <openssl/sha.h>
 #include <openssl/bn.h>
 
+
+#define FALSE 0
+#define TRUE 1
+
 struct Elliptic_curve{
     BIGNUM* E_A;
     BIGNUM* E_B;
