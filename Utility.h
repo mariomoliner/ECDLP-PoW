@@ -3,17 +3,43 @@
 
 #include <openssl/sha.h>
 #include <openssl/bn.h>
-#include "ECDLP_PoW.h"
 
 typedef int bool;
 #define FALSE 0
 #define TRUE 1
 
+
+struct POINT {
+    BIGNUM * x;
+    BIGNUM * y;
+};
+
+
+struct Elliptic_curve{
+    BIGNUM* E_A;
+    BIGNUM* E_B;
+};
+
+typedef struct Elliptic_curve Elliptic_curve;
+
+typedef struct POINT POINT;
+
 void Print_hash(const unsigned char * hash, int size);
 BIGNUM * Next_prime(BIGNUM * num);
 BIGNUM * SquareRoot(BIGNUM * num);
+bool EulerCriterion(BIGNUM * n, BIGNUM * p);
 BIGNUM * Cardinal_EllipticCurveGroup(BIGNUM *p , Elliptic_curve E);
+BIGNUM * Naive_Cardinal_EllipticCurveGroup(BIGNUM *p , Elliptic_curve E);
+BIGNUM * EvaluateElliptic(Elliptic_curve E, BIGNUM * x, BIGNUM * p);
+bool Embedding_Degree(BIGNUM * cardinal, BIGNUM *p, int minimum);
+BIGNUM * SquareRootMod(BIGNUM * n, BIGNUM * p);
 //for the is_prime implementation we will rely in the one from openSSL
+
+void init_Elliptic_curve(Elliptic_curve * e);
+void free_Elliptic_curve(Elliptic_curve * e);
+
+void POINT_new(POINT p);
+void POINT_free(POINT p);
 
 
 

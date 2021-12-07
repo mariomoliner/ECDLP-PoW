@@ -1,9 +1,5 @@
 #include "ECDLP_PoW.h"
-#include <openssl/sha.h>
-#include <math.h>
-#include <string.h>
-#include "Utility.h"
-#include "Logging.h"
+
 #include <openssl/bn.h>
 
 
@@ -61,29 +57,89 @@ BIGNUM * prime_Gen(int d, const unsigned char * hash){
     return p;
 }
 
+bool ValidEllipticCurve(Elliptic_curve e, BIGNUM * p){
+    LOG_BN("Checking if the elliptic curve \nE_A", e.E_A);
+    LOG_BN("E_B", e.E_B);
+    LOG("is valid");
+    BIGNUM * cardinal = Naive_Cardinal_EllipticCurveGroup(p, e);
+    BN_CTX * bn_ctx = BN_CTX_new();
+
+    LOG("checking primality of the elliptic curve");
+    if(!BN_is_prime(cardinal,128,NULL,bn_ctx,NULL)){
+        LOG("the cardinal of the elliptic is not prime");
+        return FALSE;
+    }
+
+    LOG("checking of p = cardinal");
+    if(BN_cmp(cardinal,p)==0){
+        LOG("the cardinal of the ellitpic curve equal p");
+        return FALSE;
+    }
+
+
+    LOG("checking embeding degree");
+    if(!Embedding_Degree(cardinal,p,21)){
+        LOG("the embedding degree of the curve is smaller");
+        return FALSE;
+    }
+
+    return TRUE;
+
+
+
+
+}
+
 
 
 Elliptic_curve E_Gen(BIGNUM * p, const unsigned * hash){
-    LOG("Generating Elliptic curve for prime field: ")
+    LOG("Generating Elliptic curve for prime field: ");
     LOG_BN("",p);
-    LOG("and starting hash")
+    LOG("and starting hash");
+
     LOG_HASH("",hash, strlen(hash));
 
-    int i = 0;
+    const unsigned * hash_added;
+    BIGNUM * i = BN_new();
+    BN_zero(i);
+
     const unsigned * A_raw, * B_raw;
     BIGNUM *E_A = BN_new();
     BIGNUM *E_B = BN_new();
+    BIGNUM *prev = BN_new();
+    BN_CTX *bn_ctx = BN_CTX_new();
 
     Elliptic_curve e;
-    init_Elliptic_curve(e);
+    init_Elliptic_curve(&e);
 
     while(TRUE){//until satisfies curve properties
-        i++;
-        A_raw = SHA256(hash, strlen((const char*)hash), 0);
+        
+        prev = BN_bin2bn(hash, strlen(hash),0);
+
+        BN_add(prev,prev,i);
+
+        BN_bn2bin(prev, hash_added);
+
+
+
+        A_raw = SHA256(hash_added, strlen((const char*)hash_added), 0);
         E_A = BN_bin2bn(A_raw, strlen((const char*)A_raw),0);
+        BN_mod(E_A,E_A,p,bn_ctx);
         B_raw = SHA256(A_raw, strlen((const char*)A_raw), 0);
+        E_B = BN_bin2bn(B_raw, strlen((const char*)B_raw),0);
+        BN_mod(E_B,E_B,p,bn_ctx);
 
+        e.E_A = E_A;
+        e.E_B = E_B;
 
+        
+        if(ValidEllipticCurve(e,p)){
+            LOG_BN("Valid elliptic curve E_A: ", e.E_A);
+            LOG_BN("E_B ", e.E_B);
+            return e;
+        }
+
+        BN_add_word(i,1);
 
         /*if(){
             
@@ -92,42 +148,56 @@ Elliptic_curve E_Gen(BIGNUM * p, const unsigned * hash){
 }
 
 
-double P_Gen(const unsigned char * hash, Elliptic_curve E){
+POINT * P_Gen(const unsigned char * hash, Elliptic_curve E, BIGNUM * p){
     int i = 0;
-    BIGNUM *x_value = BN_bin2bn(hash, strlen((const char*)hash),NULL);
     BIGNUM * calculated_squared_image = BN_new();
-    BIGNUM * literal = BN_new();
-    BIGNUM *aux, *aux2;
-
     BN_CTX * bn_ctx = BN_CTX_new();
+    BIGNUM * x = BN_new();
+    BIGNUM * y = BN_new();
+    
+    POINT point;
+    POINT_new(point);
+    BN_zero(x);
+    BN_bin2bn(hash, strlen(hash), x);
+    BN_mod(x,x,p,bn_ctx);
+    
 
+
+    LOG_BN("x value", x);
     while(TRUE){
 
-        //h = h + 1
-        BN_set_word(aux,i);
-        BN_add(x_value, x_value, aux);
+        BN_add_word(x, i);
 
-        BN_exp(aux, x_value, BN_set_word(literal,3),bn_ctx);
-        BN_mul(aux2,x_value,E.E_A,bn_ctx);
-        BN_add(aux,aux,aux2);
-        BN_add(calculated_squared_image,aux,E.E_B);
 
-         //there are two images 
+        calculated_squared_image = EvaluateElliptic(E,x,p);
+        LOG_BN("image ", calculated_squared_image);
 
-        //}*/
+
+        if(EulerCriterion(calculated_squared_image,p)){
+            //found
+            break;
+        }
+
         i++;
     }
+
+    y = SquareRootMod(calculated_squared_image, p);
+
+    point.x = x;
+    point.y = y;
+
+    
+
+    //final_result[0] = BN_new();
+    //final_result[1] = BN_new();
+
+    LOG_BN("Point found in: (", point.x);
+    LOG_BN(",",point.y);
+    LOG(")");
+
+    return &point;
+
+
 }
 
 
-
-//INITIALIZIATION OF THE TYPES
-void init_Elliptic_curve(Elliptic_curve e){
-    e.E_A = BN_new();
-    e.E_B = BN_new();
-}
-
-void free_Elliptic_curve(Elliptic_curve e){
-    BN_free(e.E_A);
-    BN_free(e.E_B);
-}

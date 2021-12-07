@@ -8,54 +8,40 @@
 
 int main(){
     
-    LOG("Debugging mode")
+    LOG("Debugging mode");
 
     BIGNUM *prime;
     const char *original = "Rosetta cosdsdde";
     const unsigned char *s = (const unsigned char *)original;
 	const unsigned char *hash = SHA256(s, strlen(original), 0);
 
-    /*BIGNUM *p = BN_bin2bn(d, strlen(d), NULL);
-    printf("hash over to find prime p: ");
-    BN_print_fp(stdout,p);
-    printf("\n");
-    Next_prime(p);*/
 
-    prime = prime_Gen(10, hash);
 
-    BIGNUM *prueba = BN_new();
-    BN_set_word(prueba,3136);
+    /*BIGNUM * prueba = BN_new();
+    BIGNUM * prueba2 = BN_new();
+    BIGNUM * xx = BN_new();
 
-    
-    SquareRoot(prueba);
+    BN_set_word(prueba2,7);
+    BN_set_word(prueba, 4);
+    Elliptic_curve e;
+    init_Elliptic_curve(&e);
+    BN_set_word(e.E_A,21003);
+    BN_set_word(e.E_B,5668);
 
-    
+    BN_set_word(prueba,5668);
+    BN_set_word(prueba2, 28703);
 
-    
-    /*
-    PRUEBAS CON BN
-    const char *original = "Rosetta code";
-    const unsigned char *s = (const unsigned char *)original;
-	const unsigned char *d = SHA256(s, strlen(original), 0);
-    
-    
-    Print_hash(d, SHA256_DIGEST_LENGTH);
-    printf("\n");
 
-    BIGNUM *p = BN_bin2bn(d, 2, NULL);
+    xx = EvaluateElliptic(e,prueba, prueba2);
+    LOG_BN("sdsd", xx);*/
 
-    unsigned char * hexadecimal = BN_bn2hex(p);
-    unsigned char * decimal = BN_bn2dec(p);
+    prime = prime_Gen(8, hash);
+    Elliptic_curve e;
+    e = E_Gen(prime,hash);
 
-    printf("decimal: %s\n", decimal);*/
+    P_Gen(hash, e, prime);
 
-	//prime_Gen(10, d);
-    //prime_Gen(30, d);
-    //prime_Gen(60, d);
 
-    /*BIGNUM *bn = BN_new();
-    BN_set_word(bn, 12);
-    Next_prime(bn);*/
 
     return 0;
 }

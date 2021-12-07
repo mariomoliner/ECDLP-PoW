@@ -20,8 +20,7 @@
 #define LOG(message)   print_msg(message)
 #define LOG_BN(message, big_int, args...)   print_bn(message, big_int)
 #define LOG_HASH(message, hash, size, ...)  print_hash(message, hash, size)
-#else
-#define LOG(message, args...)   
+#else  
 #endif
 
 
@@ -30,7 +29,6 @@
 #define LOG_BN(message, big_int, args...)  
 #define LOG_HASH(message, hash, size, ...)  
 #else
-#define LOG(message, args...)   
 #endif
 
 
