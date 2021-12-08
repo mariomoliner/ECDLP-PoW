@@ -72,6 +72,7 @@ BIGNUM * Next_prime(BIGNUM *x){
 	BN_free(aux);
 	BN_free(aux2);
 	BN_free(literal);
+	BN_CTX_free(bn_ctx);
 
 	if(found == TRUE){
 	}else{
@@ -84,7 +85,7 @@ BIGNUM * Next_prime(BIGNUM *x){
 
 }
 
-
+//NOT FUNCTIONAL
 BIGNUM * Cardinal_EllipticCurveGroup(BIGNUM *p , Elliptic_curve E){
 	BIGNUM * m;
 	BIGNUM *it = BN_new();
@@ -113,23 +114,27 @@ BIGNUM * order(BIGNUM * b, BIGNUM * p){
 		BN_mod_exp(calc, b, k, p, bn_ctx);
 
 		if(BN_cmp(calc, one)==0){
-			return k;
+			break;
 		}
 		
 		BN_add_word(k,1);
 	}
+	
+	BN_free(one);
+	BN_free(calc);
+	BN_CTX_free(bn_ctx);
+
+	return k;
+
 }
 
 bool EulerCriterion(BIGNUM * n, BIGNUM * p){
-	//LOG("calculating if theres quadratic residue of");
-	//LOG_BN("",n);
-	//LOG_BN("over", p);
-
 	BIGNUM * bn_ctx = BN_CTX_new();
 	BIGNUM * aux = BN_new();
 	BIGNUM * one = BN_new();
 	BN_one(one);
 	BN_mod(n,n,p,bn_ctx);
+	bool found = FALSE;
 
 	BN_copy(aux,p);
 	BN_sub_word(aux,1);
@@ -138,12 +143,14 @@ bool EulerCriterion(BIGNUM * n, BIGNUM * p){
 	BN_mod_exp(aux,n,aux, p,bn_ctx);
 	if(BN_cmp(one, aux)== 0){
 		//LOG("There exists!");
-		return TRUE;
+		found = TRUE;
 	}
-	else{
-		//LOG("Doesnt exists!");
-		return FALSE;
-	}
+	
+	BN_free(aux);
+	BN_free(one);
+	BN_CTX_free(bn_ctx);
+
+	return found;
 
 
 }
@@ -340,6 +347,7 @@ bool Embedding_Degree(BIGNUM * cardinal, BIGNUM *p, int minimum){
 	}
 	return TRUE;
 }
+
 /*
 *
 * INPUT: num to calculate square root over the integers

@@ -35,11 +35,19 @@ int main(){
     xx = EvaluateElliptic(e,prueba, prueba2);
     LOG_BN("sdsd", xx);*/
 
-    prime = prime_Gen(8, hash);
+    prime = prime_Gen(4, hash);
     Elliptic_curve e;
     e = E_Gen(prime,hash);
 
     P_Gen(hash, e, prime);
+
+    prime = prime_Gen(8, hash);
+    e = E_Gen(prime,hash);
+
+    P_Gen(hash, e, prime);
+
+
+
 
 
 
