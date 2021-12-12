@@ -12,7 +12,7 @@
 *
 */
 BIGNUM * Next_prime(BIGNUM *x){
-	LOG_BN("Finding next prime of number", x);
+	LOG_BN_DEBUG("Finding next prime of number", x);
 	BIGNUM *k = BN_new();
 	BIGNUM *i = BN_new();
 	int to_sum;
@@ -57,7 +57,7 @@ BIGNUM * Next_prime(BIGNUM *x){
 
 
 		if(BN_is_prime(x,128,NULL,bn_ctx,NULL)){
-			LOG_BN("Prime found!", x);
+			LOG_BN_DEBUG("Prime found!", x);
 			found = TRUE;
 			break;
 			
@@ -86,8 +86,8 @@ BIGNUM * Next_prime(BIGNUM *x){
 }
 
 //NOT FUNCTIONAL
-BIGNUM * Cardinal_EllipticCurveGroup(BIGNUM *p , Elliptic_curve E){
-	BIGNUM * m;
+BIGNUM * Cardinal_EllipticCurveGroup(EC_GROUP * E){
+	/*BIGNUM * m;
 	BIGNUM *it = BN_new();
 
 	BN_zero(it);
@@ -95,7 +95,7 @@ BIGNUM * Cardinal_EllipticCurveGroup(BIGNUM *p , Elliptic_curve E){
 	m = SquareRoot(SquareRoot(p));
 	LOG_BN("square square root" , m);
 
-	BN_add_word(m,2);
+	BN_add_word(m,2);*/
 	
 
 }
@@ -270,14 +270,22 @@ BIGNUM * Convertx2e(BIGNUM *x, BIGNUM * e){
 
 }*/
 
-BIGNUM * Naive_Cardinal_EllipticCurveGroup(BIGNUM *p , Elliptic_curve E){
+BIGNUM * Naive_Cardinal_EllipticCurveGroup(EC_GROUP * E){
+
+	BIGNUM *a = BN_new();
+	BIGNUM *b = BN_new();
+	BIGNUM *p = BN_new();
+	BIGNUM * bn_ctx = BN_CTX_new();
+
+	EC_GROUP_get_curve(E, p, a, b, bn_ctx);
+
+
 
 	BIGNUM *it = BN_new();
 	BIGNUM *aux = BN_new();
 	BIGNUM *aux2 = BN_new();
 	BIGNUM *three = BN_new();
 	BIGNUM *calculation = BN_new();
-	BIGNUM * bn_ctx = BN_CTX_new();
 	BIGNUM * count = BN_new();
 
 	BN_set_word(three,3);
@@ -285,7 +293,7 @@ BIGNUM * Naive_Cardinal_EllipticCurveGroup(BIGNUM *p , Elliptic_curve E){
 
 	while(BN_cmp(it,p)<0){
 		//LOG_BN("iteration", it);
-		calculation = EvaluateElliptic(E,it,p);
+		calculation = EvaluateElliptic(E,it);
 
 
 		if(EulerCriterion(calculation,p)){
@@ -297,29 +305,36 @@ BIGNUM * Naive_Cardinal_EllipticCurveGroup(BIGNUM *p , Elliptic_curve E){
 
 	//the infinty pt
 	BN_add_word(count, 1);
-	LOG("the number of points in the Elliptic curve is ");
-	LOG_BN("",count);
+	LOG_BN_DEBUG("the number of points in the Elliptic curve is",count);
 	return count;
 
 	
 
 }
 
-BIGNUM * EvaluateElliptic(Elliptic_curve E, BIGNUM * x, BIGNUM * p){
+//returns y^2
+BIGNUM * EvaluateElliptic(EC_GROUP *E, BIGNUM * x){
+
+	BIGNUM *a = BN_new();
+	BIGNUM *b = BN_new();
+	BIGNUM *p = BN_new();
+	BIGNUM * bn_ctx = BN_CTX_new();
+
+	EC_GROUP_get_curve(E, p, a, b, bn_ctx);
+
 
 	BIGNUM *it = BN_new();
 	BIGNUM *aux = BN_new();
 	BIGNUM *aux2 = BN_new();
 	BIGNUM *three = BN_new();
 	BIGNUM *calculation = BN_new();
-	BIGNUM * bn_ctx = BN_CTX_new();
 
 	BN_set_word(three,3);
 
 	BN_mod_exp(aux,x,three,p,bn_ctx);
-	BN_mul(aux2, E.E_A, x,bn_ctx);
+	BN_mul(aux2, a, x,bn_ctx);
 	BN_add(calculation, aux, aux2);
-	BN_add(calculation, calculation, E.E_B);
+	BN_add(calculation, calculation, b);
 
 
 	BN_mod(calculation,calculation,p,bn_ctx);
@@ -355,7 +370,7 @@ bool Embedding_Degree(BIGNUM * cardinal, BIGNUM *p, int minimum){
 *
 */
 BIGNUM * SquareRoot(BIGNUM * num){
-	LOG_BN("Calculating square root of:", num);
+	LOG_BN_DEBUG("Calculating square root of:", num);
 
 	bool found = FALSE;
 	BIGNUM * prev = BN_new();
@@ -375,11 +390,10 @@ BIGNUM * SquareRoot(BIGNUM * num){
 		BN_div_word(aux,2);
 
 		BN_copy(current, aux);
-		LOG_BN("current ", current);
 
 		if(BN_cmp(prev, current)==0){
 			found = TRUE;
-			LOG_BN("square root found", current);
+			LOG_BN_DEBUG("square root found", current);
 		}
 	}
 }
@@ -410,7 +424,7 @@ BIGNUM * SquareRootMod(BIGNUM * n, BIGNUM * p){
 		BN_add_word(it,1);
 	}
 
-	LOG("square root not found, sure it does exist?");
+	LOG_DEBUG("square root not found, sure it does exist?");
 }
 
 
