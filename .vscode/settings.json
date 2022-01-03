@@ -2,6 +2,22 @@
     "files.associations": {
         "system_error": "cpp",
         "bn.h": "c",
-        "ec.h": "c"
+        "ec.h": "c",
+        "__hash_table": "cpp",
+        "__split_buffer": "cpp",
+        "array": "cpp",
+        "bitset": "cpp",
+        "initializer_list": "cpp",
+        "iterator": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
+        "unordered_map": "cpp",
+        "utility": "cpp",
+        "vector": "cpp",
+        "ecdlp_pow.h": "c",
+        "sha.h": "c",
+        "utility_flint.h": "c",
+        "fmpz_mpoly.h": "c",
+        "fmpq_mpoly.h": "c"
     }
 }

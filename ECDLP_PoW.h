@@ -8,6 +8,7 @@
 #include <stdlib.h>  
 #include "Utility.h"
 #include "Logging.h"
+#include <time.h>
 #include <openssl/ec.h>
 
 typedef int bool;
@@ -17,6 +18,7 @@ typedef int bool;
 struct EPOCH_POW_INSTANCE {
     EC_GROUP * elliptic_curve;
     EC_POINT * P;
+    BIGNUM * cardinal;
 };
 
 typedef struct EPOCH_POW_INSTANCE EPOCH_POW_INSTANCE;
@@ -39,15 +41,17 @@ typedef struct ECDLP_POW_SOLUTION ECDLP_POW_SOLUTION;
 
 
 //META FUNCTIONS FOR THE ABSTRACTIONS OF THE ALGORITHM
-EPOCH_POW_INSTANCE * EpochPowInstance_new(const char * hash, int d);
-ECDLP_POW_PROBLEM * ECDLPPowProblem_new(EPOCH_POW_INSTANCE * instance, const char * hash_prev, const char * M);
-ECDLP_POW_SOLUTION * ECDLPPowSolution_new(ECDLP_POW_PROBLEM * problem);
+EPOCH_POW_INSTANCE EpochPowInstance_new(const char * hash, int d);
+ECDLP_POW_PROBLEM ECDLPPowProblem_new(EPOCH_POW_INSTANCE * instance, const char * hash_prev, const char * M);
+ECDLP_POW_SOLUTION ECDLPPowSolution_new(ECDLP_POW_PROBLEM * problem);
+bool ECDLPPowCheckSolution(ECDLP_POW_SOLUTION * solution);
+
 
 //BASIC FUNCTIONS OF THE POW ALGORTIHM
 BIGNUM * prime_Gen(int d, const unsigned char * hash);
 EC_POINT * P_Gen(const unsigned char * hash, int size , EC_GROUP * E);
 EC_GROUP * E_Gen(BIGNUM * p, const unsigned * hash);
-bool ValidEllipticCurve(EC_GROUP * E);
+bool ValidEllipticCurve(EC_GROUP * E, BIGNUM * cardinal);
 unsigned char * CurveAndPrimeToHash(EC_GROUP * E);
 
 

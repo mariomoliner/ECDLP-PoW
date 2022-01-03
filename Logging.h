@@ -19,6 +19,9 @@
 
 #if LOG_LEVEL >= VERBOSE
 #define LOG(message)   print_msg(message)
+#define LOG_simple(message)   print(message)
+#define LOG_BN_dec(message, big_int, args...)   print_bn_dec(message, big_int)
+#define LOG_BN_simple(message, big_int)  print_bn_simple(message, big_int)
 #define LOG_BN(message, big_int, args...)   print_bn(message, big_int)
 #define LOG_HASH(message, hash, size, ...)  print_hash(message, hash, size)
 #define LOG_POINT(message, POINT, CURVE,...)      print_point(message, POINT, CURVE)
@@ -49,18 +52,37 @@
 
 
 static inline void print_msg(char * msg){
-   printf("LOG | %s\n", msg);
+   printf("%s\n", msg);
+}
+
+static inline void print(char * msg){
+    printf("%s", msg);
 }
 
 static inline void print_bn(char * msg, BIGNUM * bn){
-    printf("LOG | %s ", msg);
+    printf("%s 0x", msg);
     BN_print_fp(stdout, bn);
     printf("\n");
 }
 
+static inline void print_bn_simple(char * msg, BIGNUM * bn){
+    char * num = BN_bn2dec(bn);
+    printf("%s ", msg);
+    printf("%s", num);
+}
+
+static inline void print_bn_dec(char * msg, BIGNUM * bn){
+    char * num = BN_bn2dec(bn);
+    printf("%s ", msg);
+    printf("%s", num);
+    printf("\n");
+}
+
+
+
 static inline void print_hash(char  * msg,const unsigned char * hash, int size){
     int i;
-    printf("LOG | %s ", msg);
+    printf("%s ", msg);
 	for (i = 0; i < size; i++)
 		printf("%02x", hash[i]);
 	putchar('\n');
@@ -73,14 +95,21 @@ static inline void print_point(char * msg, EC_POINT * p, EC_GROUP * E){
 
     EC_POINT_get_affine_coordinates(E, p, px, py, bn_ctx);
 
-    printf("%s (", msg);
-    BN_print_fp(stdout, px);
+    char * numx = BN_bn2dec(px);
+    char * numy = BN_bn2dec(py);
+
+    printf("%s(", msg);
+    printf("%s",numx);
     printf(",");
-    BN_print_fp(stdout, py);
+    printf("%s",numy);
     printf(")");
+
+    BN_free(px);
+    BN_free(py);
+    BN_CTX_free(bn_ctx);
 }
 
-static inline void print_elliptic(char * msg, Elliptic_curve * e){
+static inline void print_elliptic(char * msg, EC_GROUP * e){
     BIGNUM *a = BN_new();
 	BIGNUM *b = BN_new();
 	BIGNUM *p = BN_new();
@@ -88,11 +117,14 @@ static inline void print_elliptic(char * msg, Elliptic_curve * e){
 
 	EC_GROUP_get_curve(e, p, a, b, bn_ctx);
 
-    printf("LOG | %s:", msg);
-    printf(" y^2 = x^3 + ");
-    BN_print_fp(stdout, a);
+    char * numx = BN_bn2dec(a);
+    char * numy = BN_bn2dec(b);
+
+    printf("%s:", msg);
+    printf("y^2 = x^3 + ");
+    printf("%s",numx);
     printf("x + ");
-    BN_print_fp(stdout, b);
+    printf("%s",numy);
     printf("\n");
 
     BN_free(a);

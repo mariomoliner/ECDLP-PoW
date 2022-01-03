@@ -34,13 +34,17 @@ BIGNUM * Naive_Cardinal_EllipticCurveGroup(EC_GROUP * E);
 BIGNUM * EvaluateElliptic(EC_GROUP * E, BIGNUM * x);
 bool Embedding_Degree(BIGNUM * cardinal, BIGNUM *p, int minimum);
 BIGNUM * SquareRootMod(BIGNUM * n, BIGNUM * p);
+int PollardRho(EC_GROUP * elliptic_curve, EC_POINT * P, EC_POINT * Q, BIGNUM * N);
+void generate_random(BIGNUM * rnd, BIGNUM * range);
+BIGNUM * ModNegativeNumber(BIGNUM * mod, BIGNUM * num);
+EC_POINT * getRandomPoint(EC_GROUP * e);
+//BIGNUM * Schoofs(EC_GROUP * E);
+
+EC_POINT * f_func(EC_POINT* p, EC_GROUP * group, EC_POINT * P, EC_POINT * Q);
+BIGNUM *  g_func(EC_POINT * p, BIGNUM * x, EC_GROUP * E);
+BIGNUM *  h_func(EC_POINT * p, BIGNUM * x, EC_GROUP * E);
 //for the is_prime implementation we will rely in the one from openSSL
 
-void init_Elliptic_curve(Elliptic_curve * e);
-void free_Elliptic_curve(Elliptic_curve * e);
-
-void POINT_new(POINT p);
-void POINT_free(POINT p);
 
 
 

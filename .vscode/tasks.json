@@ -9,12 +9,18 @@
                 "Main.c",
                 "ECDLP_PoW.c",
                 "Utility.c",
+                "Utility_Flint.c",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",
                 "-lssl",
                 "-lcrypto",
                 "-L/usr/local/opt/openssl/lib",
-                "-I/usr/local/opt/oenssl/include"
+                "-I/usr/local/opt/openssl/include",
+                "-lflint",
+                "-lgmp",
+                "-lmpfr",
+                "-I/usr/local/include/flint",
+                "-w"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

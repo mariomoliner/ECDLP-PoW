@@ -3,14 +3,6 @@
 
 
 
-
-
-/*
-*
-* INPUT: An integer number x
-* OUTPUT: The next prime following x if found, -1 otherwise
-*
-*/
 BIGNUM * Next_prime(BIGNUM *x){
 	LOG_BN_DEBUG("Finding next prime of number", x);
 	BIGNUM *k = BN_new();
@@ -85,17 +77,86 @@ BIGNUM * Next_prime(BIGNUM *x){
 
 }
 
-//NOT FUNCTIONAL
 BIGNUM * Cardinal_EllipticCurveGroup(EC_GROUP * E){
-	/*BIGNUM * m;
-	BIGNUM *it = BN_new();
+	BIGNUM *a = BN_new();
+	BIGNUM *b = BN_new();
+	BIGNUM *p = BN_new();
+	BIGNUM *aux = BN_new();
+	BIGNUM * bn_ctx = BN_CTX_new();
+	BIGNUM * iter = BN_new();
+	BIGNUM * M = BN_new();
+	bool finished = FALSE;
+	bool unique = FALSE;
+	int num_founds = 0;
+	EC_POINT * point = EC_POINT_new(E);
+	EC_POINT * point_to = EC_POINT_new(E);
 
-	BN_zero(it);
+	EC_GROUP_get_curve(E, p, a, b, bn_ctx);
 
-	m = SquareRoot(SquareRoot(p));
-	LOG_BN("square square root" , m);
+	BIGNUM * cota_inf = BN_new();
+	BIGNUM * cota_sup = BN_new();
 
-	BN_add_word(m,2);*/
+	
+	aux = SquareRoot(p);
+	BN_mul_word(aux,2);
+
+	BN_copy(cota_inf, p);
+	BN_copy(cota_sup, p);
+	BN_add_word(cota_sup,1);
+	BN_add_word(cota_inf,1);
+
+
+	BN_add(cota_sup, cota_sup, aux);
+	BN_sub(cota_inf, cota_inf, aux);
+
+
+
+	while(!unique){
+
+		point = getRandomPoint(E);
+
+
+		BN_copy(iter,cota_inf);
+		finished = FALSE;
+		num_founds = 0;
+
+		while(!finished){
+
+			EC_POINT_mul(E,point_to,NULL,point, iter, bn_ctx);
+
+			if(EC_POINT_is_at_infinity(E,point_to)){
+				num_founds++;
+				BN_copy(M,iter);
+			}
+
+			if(num_founds > 1){
+				finished = TRUE;
+			}
+			
+			if(BN_cmp(cota_sup,iter)==0){
+				finished = TRUE;
+				if(num_founds == 1){
+					unique = TRUE;
+				}else{
+					unique = FALSE;
+					
+				}
+			}
+			BN_add_word(iter,1);
+		}
+	}
+
+	BN_free(a);
+	BN_free(b);
+	BN_free(aux);
+	BN_free(p);
+	BN_CTX_free(bn_ctx);
+	BN_free(iter);
+
+
+	return M;
+
+
 	
 
 }
@@ -155,6 +216,31 @@ bool EulerCriterion(BIGNUM * n, BIGNUM * p){
 
 }
 
+EC_POINT * getRandomPoint(EC_GROUP * E){
+	BIGNUM *a = BN_new();
+	BIGNUM *b = BN_new();
+	BIGNUM *p = BN_new();
+	BIGNUM *aux = BN_new();
+	BIGNUM * bn_ctx = BN_CTX_new();
+	bool found = FALSE;
+	BIGNUM * x = BN_new();
+
+	EC_POINT * point = EC_POINT_new(E);
+
+	EC_GROUP_get_curve(E, p, a, b, bn_ctx);
+	
+	while(!found){
+		generate_random(x,p);
+		EC_POINT_set_compressed_coordinates_GFp(E,point,x,0,bn_ctx);
+		if(EC_POINT_is_on_curve(E,point,bn_ctx)){
+			found = TRUE;
+		}
+	}
+
+
+	return point;
+}
+
 BIGNUM * Convertx2e(BIGNUM *x, BIGNUM * e){
 	BN_zero(e);
 	bool divisible = TRUE;
@@ -175,107 +261,13 @@ BIGNUM * Convertx2e(BIGNUM *x, BIGNUM * e){
 	return x;
 }
 
-/*BIGNUM * ShanksTonelli(BIGNUM * n, BIGNUM * p){
-	LOG("calculating the square root of")
-	LOG_BN("",n);
-	LOG_BN("over ", p);
-
-	BIGNUM * aux = BN_new();
-	BIGNUM * aux2 = BN_new();
-	BIGNUM * aux3 = BN_new();
-	BIGNUM * aux4 = BN_new();
-	BIGNUM * aux5 = BN_new();
-	BIGNUM * aux6 = BN_new();
-	BIGNUM * bn_ctx = BN_CTX_new();
-
-	BIGNUM * s = BN_new();
-	BIGNUM * e = BN_new();
-	BIGNUM * q = BN_new();
-
-	BN_copy(aux, p);
-	BN_sub_word(aux,1);
-	BN_copy(aux2, aux);
-	BN_div_word(aux,2);
-	//aux = (p-1)/2
-	//aux2 = (p-1)
-
-
-
-	BN_mod_exp(aux, n, aux, p, bn_ctx);
-	if(BN_cmp(aux,aux2)==0){
-		LOG("The square root is not possible");
-	}
-
-	BN_copy(aux,aux2);
-	BN_div_word(aux,2);
-	//aux is back to (p-1)/2
-
-	s = Convertx2e(aux2, e);
-	BN_set_word(q,2);
-	while(1){
-		
-		aux3 = BN_mod_exp(aux3, q, aux, p, bn_ctx);
-		
-		if(BN_cmp(aux3,aux2)==0){
-			break;
-		}
-		BN_add_word(q,1);
-	}
-
-	BIGNUM * x = BN_new();
-	BIGNUM * b = BN_new();
-	BIGNUM * g = BN_new();
-	BIGNUM * r = BN_new();
-
-	BIGNUM * m = BN_new();
-
-	BN_copy(aux, s);
-	BN_add_word(aux,1);
-	BN_div_word(aux,2);
-
-	BN_mod_exp(x, n, aux, p, bn_ctx);
-	BN_mod_exp(b, n, s, p, bn_ctx);
-	BN_mod_exp(g, q, s, p, bn_ctx);
-
-
-	BN_copy(r,e);
-	BN_set_word(aux3,2);
-
-	while(1){
-
-		BN_zero(m);
-
-		while(BN_cmp(m, r)<0){
-
-			BN_exp(aux2,aux3,m,bn_ctx);
-
-			if(BN_cmp(order(b,p), aux2) == 0){
-				break;
-			}
-
-			BN_add_word(m,1);
-		}
-		BN_zero(aux2);
-		if(BN_cmp(m, aux2) == 0){
-			return x;
-		}
-
-
-
-
-	}
-
-
-
-
-}*/
-
 BIGNUM * Naive_Cardinal_EllipticCurveGroup(EC_GROUP * E){
 
 	BIGNUM *a = BN_new();
 	BIGNUM *b = BN_new();
 	BIGNUM *p = BN_new();
 	BIGNUM * bn_ctx = BN_CTX_new();
+	BIGNUM * lit = BN_new();
 
 	EC_GROUP_get_curve(E, p, a, b, bn_ctx);
 
@@ -287,6 +279,7 @@ BIGNUM * Naive_Cardinal_EllipticCurveGroup(EC_GROUP * E){
 	BIGNUM *three = BN_new();
 	BIGNUM *calculation = BN_new();
 	BIGNUM * count = BN_new();
+	BN_zero(lit);
 
 	BN_set_word(three,3);
 	BN_zero(count);
@@ -295,9 +288,13 @@ BIGNUM * Naive_Cardinal_EllipticCurveGroup(EC_GROUP * E){
 		//LOG_BN("iteration", it);
 		calculation = EvaluateElliptic(E,it);
 
-
-		if(EulerCriterion(calculation,p)){
-			BN_add_word(count,2);
+		if(BN_cmp(lit, calculation) == 0){
+			BN_add_word(count,1);
+		}
+		else{
+			if(EulerCriterion(calculation,p)){
+				BN_add_word(count,2);
+			}
 		}
 
 		BN_add_word(it,1);
@@ -312,7 +309,6 @@ BIGNUM * Naive_Cardinal_EllipticCurveGroup(EC_GROUP * E){
 
 }
 
-//returns y^2
 BIGNUM * EvaluateElliptic(EC_GROUP *E, BIGNUM * x){
 
 	BIGNUM *a = BN_new();
@@ -338,7 +334,12 @@ BIGNUM * EvaluateElliptic(EC_GROUP *E, BIGNUM * x){
 
 
 	BN_mod(calculation,calculation,p,bn_ctx);
-	//we return y^2
+
+	BN_free(a);
+	BN_free(b);
+	BN_free(p);
+	BN_CTX_free(bn_ctx);
+
 	return calculation;
 
 }
@@ -363,12 +364,6 @@ bool Embedding_Degree(BIGNUM * cardinal, BIGNUM *p, int minimum){
 	return TRUE;
 }
 
-/*
-*
-* INPUT: num to calculate square root over the integers
-* OUTPUT: the integer truncated square root
-*
-*/
 BIGNUM * SquareRoot(BIGNUM * num){
 	LOG_BN_DEBUG("Calculating square root of:", num);
 
@@ -396,6 +391,7 @@ BIGNUM * SquareRoot(BIGNUM * num){
 			LOG_BN_DEBUG("square root found", current);
 		}
 	}
+	return current;
 }
 
 BIGNUM * SquareRootMod(BIGNUM * n, BIGNUM * p){
@@ -427,24 +423,325 @@ BIGNUM * SquareRootMod(BIGNUM * n, BIGNUM * p){
 	LOG_DEBUG("square root not found, sure it does exist?");
 }
 
+EC_POINT * f_func(EC_POINT* p, EC_GROUP * group, EC_POINT * P, EC_POINT * Q){
 
-//INITIALIZIATION OF THE TYPES
-void init_Elliptic_curve(Elliptic_curve * e){
-    e->E_A = BN_new();
-    e->E_B = BN_new();
+	BIGNUM * x = BN_new();
+	BIGNUM * y = BN_new();
+	BIGNUM * rem = BN_new();
+	BIGNUM * lit = BN_new();
+	BIGNUM * divider = BN_new();
+	BN_CTX * bn_ctx = BN_CTX_new();
+	
+
+	EC_POINT_get_affine_coordinates_GFp(group,p,x,y,bn_ctx);
+	
+	BN_zero(lit);
+	BN_set_word(divider, 3);
+	BN_mod(rem,x,divider,bn_ctx);
+	if(BN_cmp(rem,lit) == 0 || EC_POINT_is_at_infinity(group, p)){
+		EC_POINT_add(group, p, p, P, bn_ctx);
+		//LOG_POINT("inside p ", p, group);
+		//printf("\n");
+
+
+		BN_free(divider);
+		BN_free(lit);
+		BN_free(rem);
+		BN_CTX_free(bn_ctx);
+
+		return p;
+	}
+	BN_set_word(lit, 1);
+	if(BN_cmp(rem,lit) == 0){
+		EC_POINT_add(group, p, p, p, bn_ctx);
+		//LOG_POINT("X_i", p,group);
+		//printf("\n");
+	}
+	BN_set_word(lit,2);
+	if(BN_cmp(rem,lit) == 0){
+		EC_POINT_add(group, p, Q, p, bn_ctx);
+		//LOG_POINT("X_i", p,group);
+		//printf("\n");
+	}
+
+
+	BN_free(divider);
+	BN_free(lit);
+	BN_free(rem);
+	BN_CTX_free(bn_ctx);
+
+	return p;
 }
 
-void free_Elliptic_curve(Elliptic_curve * e){
-    BN_free(e->E_A);
-    BN_free(e->E_B);
+BIGNUM * g_func(EC_POINT * p, BIGNUM * x, EC_GROUP * E){
+	BIGNUM * rem = BN_new();
+	BIGNUM * lit = BN_new();
+	BN_CTX * bn_ctx = BN_CTX_new();
+	BIGNUM * divider = BN_new();
+	BIGNUM * px = BN_new();
+	BIGNUM * py = BN_new();
+
+	EC_POINT_get_affine_coordinates(E, p, px, py, bn_ctx);
+
+		
+	BN_zero(lit);
+	BN_set_word(divider, 3);
+	BN_mod(rem,px,divider,bn_ctx);
+
+	if(EC_POINT_is_at_infinity(E, p)){
+		BN_add_word(x,1);
+
+		return x;
+	}
+	if(BN_cmp(rem,lit) == 0){
+		BN_add_word(x,1);
+	}
+	BN_set_word(lit, 1);
+	if(BN_cmp(rem,lit) == 0){
+		BN_add(x,x,x);
+	}
+	BN_set_word(lit,2);
+	if(BN_cmp(rem,lit) == 0){
+	}
+
+
+	BN_free(divider);
+	BN_free(lit);
+	BN_free(rem);
+	BN_free(px);
+	BN_free(py);
+	BN_CTX_free(bn_ctx);
+
+	return x;
+
+
 }
 
-void POINT_new(POINT p){
-	p.x = BN_new();
-	p.y = BN_new();
+int PollardRho(EC_GROUP * elliptic_curve, EC_POINT * P, EC_POINT * Q, BIGNUM * N){
+	BIGNUM * bn_ctx = BN_CTX_new();
+
+	BIGNUM * gcd = BN_new();
+	BIGNUM * p = BN_new();
+    BIGNUM * a = BN_new();
+    BIGNUM * b = BN_new();
+	EC_POINT * X_i= EC_POINT_new(elliptic_curve);
+	EC_POINT * X_2i = EC_POINT_new(elliptic_curve);
+	EC_POINT * p_aux = EC_POINT_new(elliptic_curve);
+
+	BIGNUM * n = BN_new();
+	BIGNUM * aux1 = BN_new();
+	BIGNUM * aux2 = BN_new();
+	BIGNUM * aux3 = BN_new();
+	BIGNUM * solution = BN_new();
+
+	BIGNUM * a1 = BN_new();
+	BIGNUM * a2 = BN_new();
+	BIGNUM * b1 = BN_new();
+	BIGNUM * b2 = BN_new();
+
+
+    EC_GROUP_get_curve(elliptic_curve,p,a,b,bn_ctx);
+	BIGNUM * prr = EC_GROUP_get0_order(elliptic_curve);	
+	LOG_BN("cardinal!!", prr);
+
+	int i = 1;
+	bool found_cycle = FALSE;
+
+	BIGNUM * a_i = BN_new();
+	BIGNUM * b_i = BN_new();
+	BIGNUM * a_2i = BN_new();
+	BIGNUM * b_2i = BN_new();
+
+	while(i<=3){
+
+		generate_random(a_i, prr);
+		generate_random(b_i, prr);
+		//generate_random(b_2i, prr);
+		//generate_random(a_2i, prr);
+		BN_copy(a_2i,a_i);
+		BN_copy(b_2i,b_i);
+
+		/*BN_set_word(a_i,1);
+		BN_set_word(b_i,0);
+		BN_set_word(a_2i,1);
+		BN_set_word(b_2i,2);*/
+
+
+		EC_POINT_mul(elliptic_curve,X_i, NULL, P, a_i,bn_ctx);
+		EC_POINT_mul(elliptic_curve,p_aux, NULL, Q, b_i,bn_ctx);
+		EC_POINT_add(elliptic_curve,X_i,X_i,p_aux,bn_ctx);
+
+		EC_POINT_mul(elliptic_curve,X_2i, NULL, P, a_2i,bn_ctx);
+		EC_POINT_mul(elliptic_curve,p_aux, NULL, Q, b_2i,bn_ctx);
+		EC_POINT_add(elliptic_curve,X_2i,X_2i,p_aux,bn_ctx);
+
+		found_cycle = FALSE;
+	
+		while(!found_cycle){
+			//single step calcs
+			a_i = g_func(X_i, a_i, elliptic_curve);
+			b_i = h_func(X_i, b_i, elliptic_curve);
+			f_func(X_i, elliptic_curve, P,Q);
+			
+			//double step calcs
+			aux1 = g_func(X_2i,a_2i, elliptic_curve);
+			aux2 = h_func(X_2i,b_2i, elliptic_curve);
+			f_func(X_2i, elliptic_curve, P,Q);
+
+			a_2i = g_func(X_2i,aux1, elliptic_curve);
+			b_2i = h_func(X_2i,aux2, elliptic_curve);
+			f_func(X_2i, elliptic_curve, P,Q);
+
+			if(EC_POINT_cmp(elliptic_curve,X_2i,X_i,bn_ctx) == 0){ //candidate found?
+
+
+				BN_copy(a1,a_i);
+				BN_copy(a2,a_2i);
+				BN_copy(b1,b_i);
+				BN_copy(b2,b_2i);
+
+				BN_sub(aux1, b2, b1);
+				BN_sub(aux3, a1, a2);
+
+				if(BN_cmp(b_i,b_2i)!=0){
+					//not valid! retry
+				
+					BN_gcd(gcd, aux1, p, bn_ctx);
+					BN_one(aux2);
+					if(BN_cmp(gcd, aux2) == 0){
+						aux1 = ModNegativeNumber(prr,aux1);
+						aux3 = ModNegativeNumber(prr,aux3);
+						BN_mod_inverse(aux1,aux1, prr, bn_ctx);
+						BN_mod_mul(solution,aux3, aux1,prr, bn_ctx);
+
+
+						BN_free(aux1);
+						BN_free(aux2);
+						BN_free(aux3);
+
+						BN_copy(N,solution);
+						return 0;
+					}
+				}
+				found_cycle = TRUE;
+				i++;
+			}
+		}
+		return 1;
+	}
+
+	BN_zero(solution);
+	LOG("A solution to the ECDLP problem couldnt be found");
+	return 1;
+
+
 }
 
-void POINT_free(POINT p){
-	BN_free(p.x);
-	BN_free(p.y);
+void generate_random(BIGNUM * rnd, BIGNUM * range){
+	bool found = FALSE;
+	BIGNUM * zero = BN_new();
+	BN_zero(zero);
+
+	while(!found){
+		BN_rand_range(rnd,range);
+
+		if(BN_cmp(zero, rnd) != 0){
+			found = TRUE;
+		}
+	}
+}
+
+BIGNUM *  h_func(EC_POINT * p, BIGNUM * x, EC_GROUP * E){
+	BIGNUM * rem = BN_new();
+	BIGNUM * lit = BN_new();
+	BN_CTX * bn_ctx = BN_CTX_new();
+	BIGNUM * divider = BN_new();
+	BIGNUM * px = BN_new();
+	BIGNUM * py = BN_new();
+
+	EC_POINT_get_affine_coordinates(E, p, px, py, bn_ctx);
+	
+	BN_zero(lit);
+	BN_set_word(divider, 3);
+	BN_mod(rem,px,divider,bn_ctx);
+	if(EC_POINT_is_at_infinity(E, p)){
+		return x;
+	}
+	if(BN_cmp(rem,lit) == 0 || EC_POINT_is_at_infinity(E, p)){
+		
+	}
+	BN_set_word(lit, 1);
+	if(BN_cmp(rem,lit) == 0){
+		BN_add(x,x,x);
+	}
+	BN_set_word(lit,2);
+	if(BN_cmp(rem,lit) == 0){
+		BN_add_word(x,1);
+	}
+
+	BN_free(divider);
+	BN_free(lit);
+	BN_free(rem);
+	BN_free(px);
+	BN_free(py);
+	BN_CTX_free(bn_ctx);
+
+	return x;
+	
+}
+
+/*BIGNUM * Schoofs(EC_GROUP * E){
+	int M = 1;
+	int t = 0;
+
+	BIGNUM *a = BN_new();
+	BIGNUM *b = BN_new();
+	BIGNUM *p = BN_new();
+	BIGNUM *l = BN_new();
+	BIGNUM *hasse_width = BN_new();
+	BN_CTX * bn_ctx = BN_CTX_new();
+
+	EC_GROUP_get_curve(E, p, a, b, bn_ctx);
+
+	//INITIAL SETTINGS
+	BN_copy(hasse_width,p);
+	hasse_width = SquareRoot(hasse_width);
+	BN_mul_word(hasse_width,4);
+	BN_set_word(l,2);
+	
+
+	while(BN_cmp(M,hasse_width)<0){
+
+
+
+		l = Next_prime(l);
+	}
+
+
+}*/
+
+BIGNUM * ModNegativeNumber(BIGNUM * mod, BIGNUM * num){
+
+	BN_CTX * bn_cx = BN_CTX_new();
+	BIGNUM * ret = BN_new();
+	BIGNUM * lit = BN_new();
+	BIGNUM * aux = BN_new();
+	BIGNUM * aux2 = BN_new();
+
+	BN_zero(lit);
+	BN_sub_word(lit,1);
+	
+
+	if(BN_is_negative(num)){
+		BN_mul(aux,num,lit,bn_cx);
+		BN_mod(aux, aux, mod, bn_cx);
+
+		BN_sub(ret,mod,aux);
+	}else{
+		BN_mod(ret,num,mod,bn_cx);
+	}
+
+	BN_CTX_free(bn_cx);
+	return ret;
+
 }

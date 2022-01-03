@@ -2,33 +2,60 @@
 
 //META FUNCTIONS
 
-EPOCH_POW_INSTANCE * EpochPowInstance_new(const char * hash, int d){
+EPOCH_POW_INSTANCE EpochPowInstance_new(const char * hash, int d){
     LOG(" ---  Generating EPOCH block parameters --- ");
+
+    double time_spent1, time_spent2, time_spent3; 
+    clock_t begin, end;
+
     BIGNUM * prime = BN_new();
     EC_GROUP * E;
     EC_POINT * P;
     char * hash_P;
+    BIGNUM * cardinal;
     EPOCH_POW_INSTANCE instance;
 
+    begin = clock();
     prime = prime_Gen(d, hash);
+    end = clock();
+    time_spent1 = (double)(end - begin)/CLOCKS_PER_SEC;
+    printf("Time for calculating the prime field %lf\n",time_spent1);
+
+    begin = clock();
     E = E_Gen(prime, hash);
+    end = clock();
+    time_spent2 = (double)(end - begin)/CLOCKS_PER_SEC;
+    printf("Time for calculating the elliptic curve %lf\n",time_spent2);
+
     hash_P = CurveAndPrimeToHash(E);
+
+    begin = clock();
     P = P_Gen(hash_P,sizeof(int),E);
+    cardinal = Cardinal_EllipticCurveGroup(E);
+    end = clock();
+    time_spent3 = (double)(end - begin)/CLOCKS_PER_SEC;
+    printf("Time for calculating the base point %lf\n",time_spent3);
 
     instance.elliptic_curve = E;
     instance.P = P;
+    instance.cardinal = cardinal;
 
-    LOG_BN("prime field p:",prime);
+    LOG_BN_dec("prime field p:",prime);
     LOG_ELLIPTIC("elliptic curve: ", E);
     LOG_POINT("base point: ", P, E);
+    LOG_simple("\n");
 
-    return &instance;
+    return instance;
 }
 
-ECDLP_POW_PROBLEM * ECDLPPowProblem_new(EPOCH_POW_INSTANCE * instance, const char * hash_prev, const char * M){
-    LOG("\n ---  Generating ECDLP POW PROBLEM --- ");
+bool ECDLPPowCheckSolution(ECDLP_POW_SOLUTION * solution){
+    
+}
 
-    EC_POINT * Q1;
+ECDLP_POW_PROBLEM ECDLPPowProblem_new(EPOCH_POW_INSTANCE * instance, const char * hash_prev, const char * M){
+    LOG("\n ---  Generating ECDLP POW PROBLEM --- ");
+    EC_POINT * Point_base = instance->P;
+    EC_POINT * Q1 = BN_new();
     EC_POINT * Q2 = BN_new();
 
     ECDLP_POW_PROBLEM problem;
@@ -39,39 +66,73 @@ ECDLP_POW_PROBLEM * ECDLPPowProblem_new(EPOCH_POW_INSTANCE * instance, const cha
     SHA256(hash_prev, SHA256_DIGEST_LENGTH, o1);
     SHA256(M, strlen(M), o2);
 
-    LOG_POINT("point", instance->P,instance->elliptic_curve);
 
-    //Q1 = P_Gen(o1,SHA256_DIGEST_LENGTH, instance->elliptic_curve);
-    //Q2 = P_Gen(o2,SHA256_DIGEST_LENGTH, instance->elliptic_curve);
+    Q1 = P_Gen(o1,SHA256_DIGEST_LENGTH, instance->elliptic_curve);
+    Q2 = P_Gen(o2,SHA256_DIGEST_LENGTH, instance->elliptic_curve);
 
-    LOG_POINT("point", instance->P,instance->elliptic_curve);
-        
     problem.Q_2 = Q2;
     problem.Q_1 = Q1;
 
+        
     problem.epoch_instance = instance;
-    
-
+    instance->P = Point_base;
       
 
-    LOG_POINT("point", instance->P,instance->elliptic_curve);
     //problem.Q2 = Q2;    
 
     LOG("ECDLP problem: ");
     LOG_POINT("", Q1,instance->elliptic_curve);
     LOG_POINT("= N1*", instance->P, instance->elliptic_curve);
+    LOG_simple("\n");
+
 
     LOG_POINT("", Q2, instance->elliptic_curve);
     LOG_POINT("= N2*", instance->P, instance->elliptic_curve);
+    LOG_simple("\n");
 
 
+    return problem;
 
-    return &problem;
+    
 
 }
 
-ECDLP_POW_SOLUTION * ECDLPPowSolution_new(ECDLP_POW_PROBLEM * problem){
-    //pollard rho?
+ECDLP_POW_SOLUTION ECDLPPowSolution_new(ECDLP_POW_PROBLEM * problem){
+    LOG("\n ---  Generating ECDLP POW SOLUTION --- ");
+    ECDLP_POW_SOLUTION solution_ecdlp;
+
+    BIGNUM * solution1 = BN_new();
+    BIGNUM * solution2 = BN_new();
+    int error1= PollardRho(problem->epoch_instance->elliptic_curve,problem->epoch_instance->P,problem->Q_1,solution1);
+    int error2= PollardRho(problem->epoch_instance->elliptic_curve,problem->epoch_instance->P,problem->Q_2,solution2);
+
+    solution_ecdlp.problem = problem;
+    solution_ecdlp.N1 = solution1;
+
+    LOG("ECDLP solution: ");
+    if(!error1){
+        LOG_POINT("", problem->Q_1,problem->epoch_instance->elliptic_curve);
+        LOG_simple(" = ");
+        LOG_BN_simple("", solution1);
+        LOG_POINT("*", problem->epoch_instance->P, problem->epoch_instance->elliptic_curve);
+        LOG_simple("\n");
+    }else{
+        LOG("no solution could be found for the first problem");
+    }
+    
+    if(!error2){
+        LOG_POINT("", problem->Q_2, problem->epoch_instance->elliptic_curve);
+        LOG_simple(" = ");
+        LOG_BN_simple("", solution2);
+        LOG_POINT("*", problem->epoch_instance->P, problem->epoch_instance->elliptic_curve);
+        LOG_simple("\n");
+    }else{
+        LOG("no solution could be found for the first problem");
+    }
+
+
+    return solution_ecdlp;
+
 }
 
 
@@ -132,7 +193,7 @@ BIGNUM * prime_Gen(int d, const unsigned char * hash){
     return p;
 }
 
-bool ValidEllipticCurve(EC_GROUP * E){
+bool ValidEllipticCurve(EC_GROUP * E, BIGNUM * cardinal){
     BIGNUM * p = BN_new();
     BIGNUM * a = BN_new();
     BIGNUM * b = BN_new();
@@ -143,16 +204,25 @@ bool ValidEllipticCurve(EC_GROUP * E){
     LOG_BN_DEBUG("E_B", b);
     LOG_DEBUG("is valid");
 
-    BIGNUM * cardinal = BN_new();
-    cardinal = Naive_Cardinal_EllipticCurveGroup(E);
+
     
     if(!BN_is_prime(cardinal,128,NULL,bn_ctx,NULL)){
+        BN_free(p);
+        BN_free(a);
+        BN_free(b);
+        BN_CTX_free(bn_ctx);
+
         LOG_DEBUG("the cardinal of the elliptic is not prime");
         return FALSE;
     }
 
     LOG_DEBUG("checking of p = cardinal");
     if(BN_cmp(cardinal,p)==0){
+        BN_free(p);
+        BN_free(a);
+        BN_free(b);
+        BN_CTX_free(bn_ctx);
+
         LOG_DEBUG("the cardinal of the ellitpic curve equal p");
         return FALSE;
     }
@@ -160,10 +230,21 @@ bool ValidEllipticCurve(EC_GROUP * E){
 
     LOG_DEBUG("checking embeding degree");
     if(!Embedding_Degree(cardinal,p,21)){
+        BN_free(p);
+        BN_free(a);
+        BN_free(b);
+        BN_CTX_free(bn_ctx);
+
         LOG_DEBUG("the embedding degree of the curve is smaller");
         return FALSE;
     }
 
+    BN_free(p);
+    BN_free(a);
+    BN_free(b);
+    BN_CTX_free(bn_ctx);
+
+    LOG_BN_dec("cardinal of the valid curve: ", cardinal);
     return TRUE;
 
 
@@ -190,9 +271,12 @@ EC_GROUP * E_Gen(BIGNUM * p, const unsigned * hash){
     BIGNUM *E_B = BN_new();
     BIGNUM *prev = BN_new();
     BN_CTX *bn_ctx = BN_CTX_new();
-
-
+    BIGNUM *cardinal = BN_new();
+    int counter = 0;
     EC_GROUP * E = EC_GROUP_new(EC_GFp_simple_method());
+
+    time_t begin, end;
+    double time_spent;
 
     while(TRUE){//until satisfies curve properties
         
@@ -210,16 +294,27 @@ EC_GROUP * E_Gen(BIGNUM * p, const unsigned * hash){
         BN_mod(E_B,E_B,p,bn_ctx);
 
         EC_GROUP_set_curve_GFp(E,p,E_A,E_B,bn_ctx);
+
+        begin = clock();
+        cardinal = Cardinal_EllipticCurveGroup(E);
+        LOG_BN_dec("cardinal found", cardinal);
+        end = clock();
+
+        time_spent = (double)(end - begin)/CLOCKS_PER_SEC;
+        printf("CARDINAL COMPUTING TIME %lf\n", time_spent);
         
-        if(ValidEllipticCurve(E)){
+        if(ValidEllipticCurve(E, cardinal)){
             LOG_BN_DEBUG("Valid elliptic curve E_A: ", E_A);
             LOG_BN_DEBUG("E_B ", E_B);
             //return e;
             break;
         }
 
+        counter++;
         BN_add_word(i,1);
     }
+
+    printf(" ----- TIMES for generating the curve %d ----" , counter);
 
     BN_free(prev);
     BN_free(E_A);
@@ -290,7 +385,10 @@ EC_POINT * P_Gen(const unsigned char * hash, int size, EC_GROUP * E){
     BIGNUM * calculated_squared_image = BN_new();
     BIGNUM * x = BN_new();
     BIGNUM * y = BN_new();
-    
+    BIGNUM * cardinal = Cardinal_EllipticCurveGroup(E);
+    LOG_BN_dec("cardinal  ", cardinal);
+    BIGNUM * cofactor = BN_new();
+    BN_one(cofactor);
     EC_POINT * point = EC_POINT_new(E);
 
     BN_zero(x);
@@ -310,9 +408,10 @@ EC_POINT * P_Gen(const unsigned char * hash, int size, EC_GROUP * E){
     }
 
     int error = EC_POINT_set_compressed_coordinates(E,point,x,0,bn_ctx);
-
+     
     if(error == 1){
         LOG_POINT_DEBUG("Point found", point, E);
+        EC_GROUP_set_generator(E,point,cardinal,cofactor);
     }else{
         LOG_DEBUG("Point not found properly");
     }
