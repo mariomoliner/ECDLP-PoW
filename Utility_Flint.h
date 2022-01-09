@@ -36,14 +36,14 @@ int division_polynomial(fmpz_t l, fq_nmod_t A, fq_nmod_t B, fq_nmod_mpoly_t elli
 
 
 ///////// Pendiente de migrar
-void Schoofs(fq_nmod_t A, fq_nmod_t B, fmpz_t q, fq_nmod_ctx_t nmod_ctx);
+void Schoofs(fq_nmod_t A, fq_nmod_t B, fmpz_t q, fmpz_t cardinal, fq_nmod_ctx_t nmod_ctx);
 
 void i_p(fmpz_t i, fq_nmod_t A, fq_nmod_t B, fq_nmod_mpoly_t poly_elliptic, nP * calculated_point, fq_nmod_mpoly_ctx_t ctx, fq_nmod_ctx_t nmod_ctx);
 void x_s(fq_nmod_mpoly_t elliptic_poly, rational_polynomial rational_part_y, fmpz_t q, rational_polynomial rational_part_x, fq_nmod_mpoly_t poly_l ,fq_nmod_mpoly_ctx_t ctx, fq_nmod_ctx_t nmod_ctx ,rational_polynomial * ret);
 rational_polynomial simplify_sum(rational_polynomial * rat_poly1, rational_polynomial * rat_poly2, fq_nmod_mpoly_ctx_t ctx);
 rational_polynomial simplify_sub(rational_polynomial * rat_poly1, rational_polynomial * rat_poly2, fq_nmod_mpoly_ctx_t ctx);
-rational_polynomial simplify_division(rational_polynomial * rat_poly1, rational_polynomial * rat_poly2, fq_nmod_mpoly_ctx_t ctx);
-void simplify_if_possible(rational_polynomial * rat_poly, fq_nmod_mpoly_ctx_t ctx);
+rational_polynomial simplify_division(rational_polynomial * rat_poly1, rational_polynomial * rat_poly2, char ** vars ,fq_nmod_mpoly_ctx_t ctx);
+void simplify_if_possible(fq_nmod_mpoly_t poly, fq_nmod_mpoly_t poly_ret, fq_nmod_mpoly_t poly_elliptic ,char ** vars ,fq_nmod_mpoly_ctx_t ctx);
 void go_to_quotient(rational_polynomial * rat_poly, rational_polynomial * quot1, rational_polynomial * quot2, fq_nmod_mpoly_ctx_t ctx);
 void print_rational_func(rational_polynomial * rat_poly1, char ** variables ,fq_nmod_mpoly_ctx_t ctx);
 rational_polynomial simplify_mult(rational_polynomial * rat_poly1, rational_polynomial * rat_poly2, fq_nmod_mpoly_ctx_t ctx);
@@ -52,8 +52,18 @@ void init_nP(nP * nP_var, fq_nmod_mpoly_ctx_t ctx);
 ////////////////////////////////////////////////////
 
 //extra
-void p_16(fmpz_t l, fmpz_t q, fmpz_t q_red, fq_nmod_t A, fq_nmod_t B, fq_nmod_mpoly_t elliptic_poly, fq_nmod_mpoly_t poly_l, char ** vars ,fq_nmod_mpoly_ctx_t ctx ,fq_nmod_mpoly_t * ret);
-void p_19x(fmpz_t l, fmpz_t rho, fmpz_t q, fmpz_t q_red, fq_nmod_t A, fq_nmod_t B, fq_nmod_mpoly_t elliptic_poly, fq_nmod_mpoly_t poly_l, char ** vars ,fq_nmod_mpoly_ctx_t ctx ,fq_nmod_mpoly_t * ret);
+void p_16(fmpz_t l, fmpz_t q, fmpz_t q_red, fq_nmod_t A, fq_nmod_t B, fq_nmod_mpoly_t elliptic_poly, fq_nmod_mpoly_t poly_l,division_polynomials * polinomials_division,char ** vars ,fq_nmod_mpoly_ctx_t ctx ,fq_nmod_mpoly_t * ret);
+void p_17(fmpz_t l, fmpz_t q, fmpz_t q_red, fq_nmod_t A, fq_nmod_t B, fq_nmod_mpoly_t elliptic_poly, fq_nmod_mpoly_t poly_l,division_polynomials * polinomials_division,char ** vars ,fq_nmod_mpoly_ctx_t ctx ,fq_nmod_mpoly_t * ret);
+void p_18(fmpz_t l, fmpz_t q, fmpz_t q_red, fq_nmod_t A, fq_nmod_t B, fq_nmod_mpoly_t elliptic_poly, fq_nmod_mpoly_t poly_l,division_polynomials * polinomials_division,char ** vars ,fq_nmod_mpoly_ctx_t ctx ,fq_nmod_mpoly_t * ret);
+void p_19y(fmpz_t l, fmpz_t rho, fmpz_t q, fmpz_t q_red, fq_nmod_t A, fq_nmod_t B, fq_nmod_mpoly_t elliptic_poly, division_polynomials * polinomials_division, fq_nmod_mpoly_t alpha,  fq_nmod_mpoly_t beta, char ** vars ,fq_nmod_mpoly_ctx_t ctx ,fq_nmod_mpoly_t * ret);
+void p_19x(fmpz_t l, fmpz_t rho, fmpz_t q, fmpz_t q_red, fq_nmod_t A, fq_nmod_t B, fq_nmod_mpoly_t elliptic_poly, division_polynomials * polinomials_division,fq_nmod_mpoly_t alpha,  fq_nmod_mpoly_t beta,char ** vars ,fq_nmod_mpoly_ctx_t ctx ,fq_nmod_mpoly_t * ret);
+void alpha_k(fmpz_t l, fmpz_t q, fmpz_t k, fq_nmod_mpoly_t elliptic_poly, division_polynomials * polinomials_division,char ** vars ,fq_nmod_mpoly_ctx_t ctx ,fq_nmod_mpoly_t * ret);
+void beta_k(fmpz_t l, fmpz_t q, fmpz_t k, fq_nmod_mpoly_t elliptic_poly, division_polynomials * polinomials_division,char ** vars ,fq_nmod_mpoly_ctx_t ctx ,fq_nmod_mpoly_t * ret);
+void reduce_poly_l(fq_nmod_mpoly_t poly,fq_nmod_mpoly_t poly_l,fq_nmod_mpoly_ctx_t ctx ,fq_nmod_mpoly_t * ret);
+void check_2(fmpz_t q, fq_nmod_mpoly_t elliptic_poly,char ** vars,fq_nmod_mpoly_ctx_t ctx ,fq_nmod_mpoly_t * ret);
+void p_19x_prueba(fmpz_t l, fmpz_t rho, fmpz_t q, fmpz_t q_red, fq_nmod_t A, fq_nmod_t B, fq_nmod_mpoly_t elliptic_poly, division_polynomials * polinomials_division, char ** vars ,fq_nmod_mpoly_ctx_t ctx ,fq_nmod_mpoly_t * ret);
+void get_final_l(int num_of, fmpz_t * primes, fmpz_t * t_l, fmpz_t hasse_bound, fmpz_t l_ret);
+void poly_exp_mod(fq_nmod_mpoly_t poly, fmpz_t exp, fq_nmod_mpoly_t mod, char ** vars  ,fq_nmod_mpoly_ctx_t ctx, fq_nmod_mpoly_t ret);
 
 void print_nmod_mpoly(fq_nmod_mpoly_t poly, char * s, char ** vars,fq_nmod_mpoly_ctx_t ctx);
 division_polynomials init_division_polynomials(fmpz_t n, fq_nmod_t A, fq_nmod_t B,fq_nmod_mpoly_t elliptic_poly,fq_nmod_mpoly_t ret, fq_nmod_mpoly_ctx_t ctx);

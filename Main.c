@@ -204,25 +204,28 @@ int main(int argc, char *argv[]){
     printf("\n");*/
 
     fmpz_t q; 
+    fmpz_t cardinal; 
     fq_nmod_t A;
     fq_nmod_t B;
     fq_nmod_ctx_t nmod_ctx;
         
     
-    fmpz_init_set_ui(q, 5);
-    fq_nmod_ctx_init(nmod_ctx, q, 1, "x");
+    fmpz_init_set_ui(q, 229);
+    fq_nmod_ctx_init(nmod_ctx, q, 1, "-");
+    fmpz_init(cardinal);
 
     fq_nmod_init(A, nmod_ctx);
     fq_nmod_init(B, nmod_ctx);
 
-    fq_nmod_set_ui(A, 1, nmod_ctx);
-    fq_nmod_set_ui(B, 1, nmod_ctx);
+    fq_nmod_set_ui(A, 13, nmod_ctx);
+    fq_nmod_set_ui(B, 215, nmod_ctx);
 
 
 
-    Schoofs(A,B,q, nmod_ctx);
+    Schoofs(A,B,q, cardinal, nmod_ctx);
 
-
+    fmpz_print(cardinal);
+    flint_printf("\n");
 
     return 0;
 }
