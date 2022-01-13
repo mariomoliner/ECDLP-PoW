@@ -203,7 +203,7 @@ int main(int argc, char *argv[]){
 
     printf("\n");*/
 
-    fmpz_t q; 
+    /*fmpz_t q; 
     fmpz_t cardinal; 
     fq_nmod_t A;
     fq_nmod_t B;
@@ -225,7 +225,7 @@ int main(int argc, char *argv[]){
     Schoofs(A,B,q, cardinal, nmod_ctx);
 
     fmpz_print(cardinal);
-    flint_printf("\n");
+    flint_printf("\n");*/
 
     return 0;
 }

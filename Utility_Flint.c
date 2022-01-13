@@ -296,15 +296,6 @@ void Schoofs(fq_nmod_t A, fq_nmod_t B, fmpz_t q, fmpz_t cardinal, fq_nmod_ctx_t 
     fmpz_add_ui(aux, aux, 3);
     division_polynomials div_polys =  init_division_polynomials(aux,A,B,poly_elliptic_ohne_y,NULL, ctx);
     
-    fmpz_set_ui(aux,2602669131841000000);
-    poly_exp_mod(poly_elliptic_ohne_y,aux, &div_polys.polynomial[3], variables ,ctx, ret1);
-    print_nmod_mpoly(ret1, "yea: ", variables, ctx);
-
-    fq_nmod_mpoly_pow_fmpz(ret1, poly_elliptic_ohne_y, aux, ctx);
-    reduce_poly_l(ret1,&div_polys.polynomial[3], ctx, ret1);
-
-    print_nmod_mpoly(ret1, "yea: ", variables, ctx);
-
 
     for(int i = 0; i<num_of; i++){
         fmpz_set(l, primes[i]);
@@ -796,7 +787,9 @@ void p_19y(fmpz_t l, fmpz_t rho, fmpz_t q, fmpz_t q_red, fq_nmod_t A, fq_nmod_t 
     //simplify_if_possible(poly_aux6, poly_aux6, elliptic_poly, vars, ctx);
     reduce_poly_l(poly_aux6, &polinomials_division->polynomial[l_long], ctx, poly_aux6);
 
-    fq_nmod_mpoly_pow_fmpz(poly_aux6, poly_aux6, q, ctx);
+    //fq_nmod_mpoly_pow_fmpz(poly_aux6, poly_aux6, q, ctx);
+    poly_exp_mod(elliptic_poly, q, &polinomials_division->polynomial[l_long], vars, ctx, poly_aux6);
+
 
     if(fmpz_is_even(rho)){
         fmpz_set(aux, q);
@@ -805,7 +798,9 @@ void p_19y(fmpz_t l, fmpz_t rho, fmpz_t q, fmpz_t q_red, fq_nmod_t A, fq_nmod_t 
 
         fq_nmod_mpoly_pow_fmpz(poly_aux5, poly_y, q, ctx);
         fq_nmod_mpoly_divides(poly_aux6, poly_aux6, poly_aux5, ctx);
-        fq_nmod_mpoly_pow_fmpz(poly_aux5, elliptic_poly, aux, ctx);
+        //fq_nmod_mpoly_pow_fmpz(poly_aux5, elliptic_poly, aux, ctx);
+        poly_exp_mod(elliptic_poly, aux, &polinomials_division->polynomial[l_long], vars, ctx, poly_aux5);
+
         fq_nmod_mpoly_mul(poly_aux6, poly_aux5, poly_aux6, ctx);
         fq_nmod_mpoly_mul(poly_aux6, poly_y, poly_aux6, ctx);
     }else{
@@ -837,7 +832,9 @@ void p_19y(fmpz_t l, fmpz_t rho, fmpz_t q, fmpz_t q_red, fq_nmod_t A, fq_nmod_t 
     fmpz_sub_ui(aux, aux, 1);
     fmpz_divexact_ui(aux, aux, 2);
 
-    fq_nmod_mpoly_pow_fmpz(poly_aux4, elliptic_poly, aux, ctx);
+    //fq_nmod_mpoly_pow_fmpz(poly_aux4, elliptic_poly, aux, ctx);
+    poly_exp_mod(elliptic_poly, aux, &polinomials_division->polynomial[l_long], vars, ctx, poly_aux4);
+
     fq_nmod_mpoly_mul(poly_aux4, poly_aux4, poly_y, ctx);
     fq_nmod_mpoly_mul(poly_aux5, poly_aux4, poly_aux5, ctx);
     simplify_if_possible(poly_aux5, poly_aux5, elliptic_poly, vars, ctx);
@@ -864,7 +861,9 @@ void p_19y(fmpz_t l, fmpz_t rho, fmpz_t q, fmpz_t q_red, fq_nmod_t A, fq_nmod_t 
     fmpz_set(aux, q);
     fmpz_pow_ui(aux, aux, 2);
     fq_nmod_mpoly_set_str_pretty(poly_aux7,"1*2", vars, ctx);
-    fq_nmod_mpoly_pow_fmpz(poly_aux, poly_aux, aux, ctx);
+    //fq_nmod_mpoly_pow_fmpz(poly_aux, poly_aux, aux, ctx);
+    poly_exp_mod(elliptic_poly, aux, &polinomials_division->polynomial[l_long], vars, ctx, poly_aux);
+
     fq_nmod_mpoly_mul(poly_aux, poly_aux7, poly_aux, ctx);
     fq_nmod_mpoly_add(poly_aux, poly_aux, poly_x, ctx);
     fq_nmod_mpoly_mul(poly_aux2, poly_aux, poly_aux2, ctx);
@@ -905,7 +904,9 @@ void p_19y(fmpz_t l, fmpz_t rho, fmpz_t q, fmpz_t q_red, fq_nmod_t A, fq_nmod_t 
     fmpz_sub_ui(aux, aux, 1);
     fmpz_divexact_ui(aux, aux, 2);
 
-    fq_nmod_mpoly_pow_fmpz(poly_aux9, elliptic_poly, aux, ctx);
+    //fq_nmod_mpoly_pow_fmpz(poly_aux9, elliptic_poly, aux, ctx);
+    poly_exp_mod(elliptic_poly, aux, &polinomials_division->polynomial[l_long], vars, ctx, poly_aux9);
+
     fq_nmod_mpoly_mul(poly_aux9, poly_y, poly_aux9, ctx);
 
     fq_nmod_mpoly_mul(poly_aux8, poly_aux9, poly_aux8, ctx);
@@ -1184,7 +1185,8 @@ void alpha_k(fmpz_t l, fmpz_t q, fmpz_t k, fq_nmod_mpoly_t elliptic_poly, divisi
         fmpz_print(aux);
         flint_printf("\n");
         //
-        fq_nmod_mpoly_pow_fmpz(poly_aux4, elliptic_poly, aux, ctx);
+        //fq_nmod_mpoly_pow_fmpz(poly_aux4, elliptic_poly, aux, ctx);
+        poly_exp_mod(elliptic_poly, aux, &polinomials_division->polynomial[l_long], vars, ctx, poly_aux4);
         reduce_poly_l(poly_aux4, &polinomials_division->polynomial[l_long], ctx, poly_aux4);
 
         fq_nmod_mpoly_mul(poly_aux3, poly_aux4, poly_aux3, ctx);
@@ -1236,7 +1238,9 @@ void alpha_k(fmpz_t l, fmpz_t q, fmpz_t k, fq_nmod_mpoly_t elliptic_poly, divisi
         fmpz_print(aux);
         flint_printf("\n");
         //
-        fq_nmod_mpoly_pow_fmpz(poly_aux4, elliptic_poly, aux, ctx);
+        //fq_nmod_mpoly_pow_fmpz(poly_aux4, elliptic_poly, aux, ctx);
+        poly_exp_mod(elliptic_poly, aux, &polinomials_division->polynomial[l_long], vars, ctx, poly_aux4);
+
         reduce_poly_l(poly_aux4, &polinomials_division->polynomial[l_long], ctx, poly_aux4);
 
         //print_nmod_mpoly(poly_aux4, "poly_aux: ", vars, ctx);
@@ -1509,13 +1513,13 @@ void poly_exp_mod(fq_nmod_mpoly_t poly, fmpz_t exp, fq_nmod_mpoly_t mod, char **
         while(fmpz_cmp(counter, counter_possible)<0){
 
             enters = 1;
-            print_nmod_mpoly(poly_aux3, "f: ", vars, ctx);
+            //print_nmod_mpoly(poly_aux3, "f: ", vars, ctx);
 
             
             fq_nmod_mpoly_mul(poly_aux, poly_aux3, poly_aux, ctx);
             reduce_poly_l(poly_aux, mod, ctx, poly_aux2);
             print_nmod_mpoly(poly_aux, "f: ", vars, ctx);
-            print_nmod_mpoly(poly_aux2, "f: ", vars, ctx);
+            print_nmod_mpoly(mod, "f: ", vars, ctx);
 
             fmpz_add_ui(counter, counter, 1);
             if(!fq_nmod_mpoly_equal(poly_aux, poly_aux2, ctx)){//reduces
@@ -1527,6 +1531,8 @@ void poly_exp_mod(fq_nmod_mpoly_t poly, fmpz_t exp, fq_nmod_mpoly_t mod, char **
                 fmpz_fdiv_qr(counter_possible, remaining, remaining_exp, num_blocks);
                 fmpz_set_ui(counter, 1);
                 //fmpz_cdiv_qr(counter_possible, remaining, exp, counter);
+            }else{
+                //fmpz_add_ui(counter, counter, 1);
             }
         }
         if(enters == 0){
@@ -1534,9 +1540,9 @@ void poly_exp_mod(fq_nmod_mpoly_t poly, fmpz_t exp, fq_nmod_mpoly_t mod, char **
         }else{
             fmpz_set(remaining_exp, remaining);
         }
-        print_nmod_mpoly(poly_aux, "f: ", vars, ctx);
+        //print_nmod_mpoly(poly_aux, "f: ", vars, ctx);
         fq_nmod_mpoly_mul(mult_final, poly_aux, mult_final, ctx);
-        print_nmod_mpoly(mult_final, "f: ", vars, ctx);
+        //print_nmod_mpoly(mult_final, "f: ", vars, ctx);
 
         //fmpz_set(remaining_exp, remaining);
     }

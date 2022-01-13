@@ -1,7 +1,6 @@
 #include "ECDLP_PoW.h"
 
 //META FUNCTIONS
-
 EPOCH_POW_INSTANCE EpochPowInstance_new(const char * hash, int d){
     LOG(" ---  Generating EPOCH block parameters --- ");
 
@@ -137,7 +136,6 @@ ECDLP_POW_SOLUTION ECDLPPowSolution_new(ECDLP_POW_PROBLEM * problem){
 
 
 //BASIC FUNCTIONS
-
 BIGNUM * prime_Gen(int d, const unsigned char * hash){
     LOG_DEBUG("Generating the prime base field...");
     LOG_HASH_DEBUG("Starting hash:", hash, SHA256_DIGEST_LENGTH);

@@ -161,6 +161,32 @@ BIGNUM * Cardinal_EllipticCurveGroup(EC_GROUP * E){
 
 }
 
+BIGNUM * Schoofs_Elkies_Atkin(EC_GROUP * E){
+	BIGNUM *A = BN_new();
+	BIGNUM *B = BN_new();
+	BIGNUM *p = BN_new();
+	BIGNUM * bn_ctx = BN_CTX_new();
+
+	char * A_hex;
+	char * B_hex;
+	char * p_hex;
+
+	bool finished = FALSE;
+	bool unique = FALSE;
+	int num_founds = 0;
+
+	EC_GROUP_get_curve(E, p, A, B, bn_ctx);
+
+	A_hex = BN_bn2hex(A);
+	B_hex = BN_bn2hex(B);
+	p_hex = BN_bn2hex(p);
+
+	
+
+
+	
+}
+
 BIGNUM * order(BIGNUM * b, BIGNUM * p){
 	BIGNUM * k = BN_new();
 	BIGNUM * one = BN_new();
@@ -690,35 +716,6 @@ BIGNUM *  h_func(EC_POINT * p, BIGNUM * x, EC_GROUP * E){
 	
 }
 
-/*BIGNUM * Schoofs(EC_GROUP * E){
-	int M = 1;
-	int t = 0;
-
-	BIGNUM *a = BN_new();
-	BIGNUM *b = BN_new();
-	BIGNUM *p = BN_new();
-	BIGNUM *l = BN_new();
-	BIGNUM *hasse_width = BN_new();
-	BN_CTX * bn_ctx = BN_CTX_new();
-
-	EC_GROUP_get_curve(E, p, a, b, bn_ctx);
-
-	//INITIAL SETTINGS
-	BN_copy(hasse_width,p);
-	hasse_width = SquareRoot(hasse_width);
-	BN_mul_word(hasse_width,4);
-	BN_set_word(l,2);
-	
-
-	while(BN_cmp(M,hasse_width)<0){
-
-
-
-		l = Next_prime(l);
-	}
-
-
-}*/
 
 BIGNUM * ModNegativeNumber(BIGNUM * mod, BIGNUM * num){
 
