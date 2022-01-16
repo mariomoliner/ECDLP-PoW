@@ -166,10 +166,22 @@ BIGNUM * Schoofs_Elkies_Atkin(EC_GROUP * E){
 	BIGNUM *B = BN_new();
 	BIGNUM *p = BN_new();
 	BIGNUM * bn_ctx = BN_CTX_new();
+	BIGNUM *cardinal = BN_new();
+	fmpz_t n;
+	fmpz_t A_fmpz;
+	fmpz_t B_fmpz;
+	fmpz_t p_fmpz;
+
+	fmpz_init(n);
+	fmpz_init(A_fmpz);
+	fmpz_init(B_fmpz);
+	fmpz_init(p_fmpz);
+
 
 	char * A_hex;
 	char * B_hex;
 	char * p_hex;
+	char * card_str;
 
 	bool finished = FALSE;
 	bool unique = FALSE;
@@ -181,9 +193,32 @@ BIGNUM * Schoofs_Elkies_Atkin(EC_GROUP * E){
 	B_hex = BN_bn2hex(B);
 	p_hex = BN_bn2hex(p);
 
-	
+	fmpz_set_str(p_fmpz, p_hex, 16);
+	fmpz_set_str(A_fmpz, A_hex, 16);
+	fmpz_set_str(B_fmpz, B_hex, 16);
 
 
+
+	if(SEA(n, p_fmpz, A_fmpz, B_fmpz, NONE, 0) == 0){
+		/*flint_printf("alles gut");
+		fmpz_print(A_fmpz);
+		flint_printf("\n");
+		fmpz_print(B_fmpz);
+		flint_printf("\n");
+		fmpz_print(n);
+		flint_printf("\n");*/
+	}else{
+		//we asing a random non-prime to the cardinal
+		fmpz_set_ui(n,4);
+	}
+
+	card_str = fmpz_get_str(NULL, 16, n);
+	//printf("card in str: %s\n", card_str);
+	BN_hex2bn(&cardinal, card_str);
+
+	//LOG_BN("cardinal: ", cardinal);
+
+	return cardinal;
 	
 }
 

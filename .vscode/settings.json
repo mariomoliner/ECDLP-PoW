@@ -18,6 +18,11 @@
         "sha.h": "c",
         "utility_flint.h": "c",
         "fmpz_mpoly.h": "c",
-        "fmpq_mpoly.h": "c"
+        "fmpq_mpoly.h": "c",
+        "fmpz.h": "c",
+        "fq_nmod.h": "c",
+        "fmpz_mod_poly.h": "c",
+        "ellipticcurvepointcounting.h": "c",
+        "toolbox.h": "c"
     }
 }

@@ -4,6 +4,10 @@
 #include <openssl/sha.h>
 #include <openssl/bn.h>
 #include <openssl/ec.h>
+#include <flint/fmpz.h>
+#include "SEA/src/SEA/EllipticCurvePointCounting.h"
+#include "SEA/src/SEA/toolbox.h"
+#include "SEA/src/SEA/params.h"
 
 typedef int bool;
 #define FALSE 0

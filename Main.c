@@ -6,18 +6,112 @@
 #include <openssl/bn.h>
 #include <openssl/ec.h>
 #include "Logging.h"
-#include "Utility_Flint.h"
+
+#include <pthread.h>
+#include <flint/fmpz.h>
+#include <flint/fmpz_mod_poly.h>
+#include "SEA/src/SEA/EllipticCurvePointCounting.h"
+#include "SEA/src/SEA/toolbox.h"
+#include "SEA/src/SEA/params.h"
+
 
 
 void slice(const char *str, char *result, size_t start, size_t end)
 {
     strncpy(result, str + start, end - start);
 }
+void check_sea(){
+
+    fmpz_t p, p2, n, A, B;
+    slong i;
+
+    fmpz_init(p);
+    fmpz_init(p2);
+    fmpz_init(n);
+    fmpz_init(A);
+    fmpz_init(B);
+
+    printf("Initialization...\n");
+
+    SEA_init();
+
+    fmpz_set_ui(A, 13);
+    fmpz_set_ui(B, 215);
+    fmpz_set_ui(p, 229);
+    flint_printf("p = ");
+    fmpz_print(p);
+    flint_printf("\n");
+
+
+    if (SEA(n, p, A, B, NONE, 0) == 0)
+    {
+
+        printf("N = ");
+        fmpz_print(n);
+
+        printf("\n");
+
+
+        flint_printf("A = ");
+        fmpz_print(A);
+        flint_printf("\n");
+        flint_printf("B = ");
+        fmpz_print(B);
+        flint_printf("\n");
+
+
+
+        if (fmpz_is_probabprime(n))
+        {
+//             printf("\n(%d,\t%d)\t", a, b);
+            fflush(stdout);
+            printf("N = ");
+            fmpz_print(n);
+
+            fmpz_neg(n, n);
+            fmpz_add_ui(n, n, 2);
+            fmpz_add(n, n, p);
+            fmpz_add(n, n, p);
+
+            if (fmpz_is_probabprime(n))
+            {
+                printf("\tTwist-secure curve");
+            }
+            else
+            {
+                printf("\tPrime curve");
+            }
+            printf("\n");
+
+        }
+
+    }
+    else
+    {
+        /* printf("bad\n"); */
+    }
+
+    printf("SEA ");
+    tac(0);
+    printf("\n");
+
+   
+
+    SEA_clear();
+
+    fmpz_clear(p);
+    fmpz_clear(p2);
+    fmpz_clear(n);
+    fmpz_clear(A);
+    fmpz_clear(B);
+}
 
 int main(int argc, char *argv[]){
+
+    //check_sea();
     
-    /*const char *string_received = "Rosetta cosdsdde";
-    int d = 7;
+    const char *string_received = "Rosetta cosdsdde";
+    int d = 16;
     if(argc%2 != 1){
         LOG("NOT the correct number of arguments");
     }else{
@@ -46,14 +140,14 @@ int main(int argc, char *argv[]){
 
 
     char * hash_prev = "dsdeneiu33euenwjnwddue33&/&23";
-    char * M = "032smwd9343493232msd9edeendndfndfdfdf99343me9eerer93i4933i933jeje9we93i439323";*/
+    char * M = "032smwd9343493232msd9edeendndfndfdfdf99343me9eerer93i4933i933jeje9we93i439323";
 
 
-    //EPOCH_POW_INSTANCE instance = EpochPowInstance_new(hash, d);
+    EPOCH_POW_INSTANCE instance = EpochPowInstance_new(hash, d);
 
-    //ECDLP_POW_PROBLEM problem = ECDLPPowProblem_new(&instance, hash_prev,M);
+    ECDLP_POW_PROBLEM problem = ECDLPPowProblem_new(&instance, hash_prev,M);
 
-    //ECDLP_POW_SOLUTION solution = ECDLPPowSolution_new(&problem);
+    ECDLP_POW_SOLUTION solution = ECDLPPowSolution_new(&problem);
     
     
     /*fmpz_t l;

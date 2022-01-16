@@ -30,7 +30,7 @@ EPOCH_POW_INSTANCE EpochPowInstance_new(const char * hash, int d){
 
     begin = clock();
     P = P_Gen(hash_P,sizeof(int),E);
-    cardinal = Cardinal_EllipticCurveGroup(E);
+    cardinal = Schoofs_Elkies_Atkin(E);
     end = clock();
     time_spent3 = (double)(end - begin)/CLOCKS_PER_SEC;
     printf("Time for calculating the base point %lf\n",time_spent3);
@@ -276,6 +276,9 @@ EC_GROUP * E_Gen(BIGNUM * p, const unsigned * hash){
     time_t begin, end;
     double time_spent;
 
+    //generating te modular polynomials
+    SEA_init();
+
     while(TRUE){//until satisfies curve properties
         
         prev = BN_bin2bn(hash, SHA256_DIGEST_LENGTH,0);
@@ -294,7 +297,8 @@ EC_GROUP * E_Gen(BIGNUM * p, const unsigned * hash){
         EC_GROUP_set_curve_GFp(E,p,E_A,E_B,bn_ctx);
 
         begin = clock();
-        cardinal = Cardinal_EllipticCurveGroup(E);
+        //cardinal = Cardinal_EllipticCurveGroup(E);
+        cardinal = Schoofs_Elkies_Atkin(E);
         LOG_BN_dec("cardinal found", cardinal);
         end = clock();
 
@@ -383,7 +387,7 @@ EC_POINT * P_Gen(const unsigned char * hash, int size, EC_GROUP * E){
     BIGNUM * calculated_squared_image = BN_new();
     BIGNUM * x = BN_new();
     BIGNUM * y = BN_new();
-    BIGNUM * cardinal = Cardinal_EllipticCurveGroup(E);
+    BIGNUM * cardinal = Schoofs_Elkies_Atkin(E);
     LOG_BN_dec("cardinal  ", cardinal);
     BIGNUM * cofactor = BN_new();
     BN_one(cofactor);
