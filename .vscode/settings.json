@@ -23,6 +23,7 @@
         "fq_nmod.h": "c",
         "fmpz_mod_poly.h": "c",
         "ellipticcurvepointcounting.h": "c",
-        "toolbox.h": "c"
+        "toolbox.h": "c",
+        "logging.h": "c"
     }
 }

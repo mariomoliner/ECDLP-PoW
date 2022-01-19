@@ -578,6 +578,22 @@ BIGNUM * g_func(EC_POINT * p, BIGNUM * x, EC_GROUP * E){
 
 }
 
+
+char * generate_random_chunk(int number) {
+    int i; 
+    char abc[26]="abcdefghijklmnopqrstuvwxyz";
+    char * output;
+    output = malloc(sizeof(char)*number);
+
+    for (i = 0; i < number; ++i) {
+        output[i] = abc[rand() % (sizeof(abc) - 1)];
+        //printf("%c ", output[i]);
+    }
+    output[number] = 0;
+
+    return output;
+}
+
 int PollardRho(EC_GROUP * elliptic_curve, EC_POINT * P, EC_POINT * Q, BIGNUM * N){
 	BIGNUM * bn_ctx = BN_CTX_new();
 
@@ -603,7 +619,7 @@ int PollardRho(EC_GROUP * elliptic_curve, EC_POINT * P, EC_POINT * Q, BIGNUM * N
 
     EC_GROUP_get_curve(elliptic_curve,p,a,b,bn_ctx);
 	BIGNUM * prr = EC_GROUP_get0_order(elliptic_curve);	
-	LOG_BN("cardinal!!", prr);
+	//LOG_BN("cardinal!!", prr);
 
 	int i = 1;
 	bool found_cycle = FALSE;

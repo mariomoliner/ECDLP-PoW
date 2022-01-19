@@ -50,6 +50,8 @@ BIGNUM * ModNegativeNumber(BIGNUM * mod, BIGNUM * num);
 // get a random point of a elliptic curve
 EC_POINT * getRandomPoint(EC_GROUP * e);
 
+char * generate_random_chunk(int number);
+
 // Pollard rho specific functions
 int PollardRho(EC_GROUP * elliptic_curve, EC_POINT * P, EC_POINT * Q, BIGNUM * N);
 EC_POINT * f_func(EC_POINT* p, EC_GROUP * group, EC_POINT * P, EC_POINT * Q);

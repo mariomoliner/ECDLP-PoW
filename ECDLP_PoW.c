@@ -18,13 +18,13 @@ EPOCH_POW_INSTANCE EpochPowInstance_new(const char * hash, int d){
     prime = prime_Gen(d, hash);
     end = clock();
     time_spent1 = (double)(end - begin)/CLOCKS_PER_SEC;
-    printf("Time for calculating the prime field %lf\n",time_spent1);
+    printf("Time for calculating the prime field %lf seg.\n",time_spent1);
 
     begin = clock();
     E = E_Gen(prime, hash);
     end = clock();
     time_spent2 = (double)(end - begin)/CLOCKS_PER_SEC;
-    printf("Time for calculating the elliptic curve %lf\n",time_spent2);
+    printf("Time for calculating the elliptic curve %lf seg.\n",time_spent2);
 
     hash_P = CurveAndPrimeToHash(E);
 
@@ -33,12 +33,13 @@ EPOCH_POW_INSTANCE EpochPowInstance_new(const char * hash, int d){
     cardinal = Schoofs_Elkies_Atkin(E);
     end = clock();
     time_spent3 = (double)(end - begin)/CLOCKS_PER_SEC;
-    printf("Time for calculating the base point %lf\n",time_spent3);
+    printf("Time for calculating the base point %lf seg.\n",time_spent3);
 
     instance.elliptic_curve = E;
     instance.P = P;
     instance.cardinal = cardinal;
 
+    LOG_simple("\n-----\n");
     LOG_BN_dec("prime field p:",prime);
     LOG_ELLIPTIC("elliptic curve: ", E);
     LOG_POINT("base point: ", P, E);
@@ -48,7 +49,37 @@ EPOCH_POW_INSTANCE EpochPowInstance_new(const char * hash, int d){
 }
 
 bool ECDLPPowCheckSolution(ECDLP_POW_SOLUTION * solution){
-    
+    BIGNUM * bn_ctx = BN_CTX_new();
+
+    BIGNUM * p = BN_new();
+    BIGNUM * a = BN_new();
+    BIGNUM * b = BN_new();
+
+    BIGNUM * lit = BN_new();
+    BN_zero(lit);
+
+    bool ret = FALSE;
+
+    EC_POINT * Q1_candidate = EC_POINT_new(solution->problem->epoch_instance->elliptic_curve);
+    EC_POINT * Q2_candidate = EC_POINT_new(solution->problem->epoch_instance->elliptic_curve);
+
+    EC_GROUP_get_curve(solution->problem->epoch_instance->elliptic_curve,p,a,b,bn_ctx);
+
+    EC_POINT_mul(solution->problem->epoch_instance->elliptic_curve, Q1_candidate, lit, solution->problem->epoch_instance->P, solution->N1, bn_ctx);
+    EC_POINT_mul(solution->problem->epoch_instance->elliptic_curve, Q2_candidate, lit, solution->problem->epoch_instance->P, solution->N2, bn_ctx);
+
+    if(EC_POINT_cmp(solution->problem->epoch_instance->elliptic_curve, Q1_candidate, solution->problem->Q_1, bn_ctx) == 0 && EC_POINT_cmp(solution->problem->epoch_instance->elliptic_curve, Q2_candidate, solution->problem->Q_2, bn_ctx) == 0){
+        ret = TRUE;
+    }
+
+    BN_free(p);
+    BN_free(a);
+    BN_free(b);
+    BN_CTX_free(bn_ctx);
+
+    return ret;
+
+
 }
 
 ECDLP_POW_PROBLEM ECDLPPowProblem_new(EPOCH_POW_INSTANCE * instance, const char * hash_prev, const char * M){
@@ -99,14 +130,18 @@ ECDLP_POW_PROBLEM ECDLPPowProblem_new(EPOCH_POW_INSTANCE * instance, const char 
 ECDLP_POW_SOLUTION ECDLPPowSolution_new(ECDLP_POW_PROBLEM * problem){
     LOG("\n ---  Generating ECDLP POW SOLUTION --- ");
     ECDLP_POW_SOLUTION solution_ecdlp;
+    clock_t begin, end;
+    double time_spent;
 
     BIGNUM * solution1 = BN_new();
     BIGNUM * solution2 = BN_new();
+    begin = clock();
     int error1= PollardRho(problem->epoch_instance->elliptic_curve,problem->epoch_instance->P,problem->Q_1,solution1);
     int error2= PollardRho(problem->epoch_instance->elliptic_curve,problem->epoch_instance->P,problem->Q_2,solution2);
-
+    
     solution_ecdlp.problem = problem;
     solution_ecdlp.N1 = solution1;
+    solution_ecdlp.N2 = solution2;
 
     LOG("ECDLP solution: ");
     if(!error1){
@@ -126,9 +161,11 @@ ECDLP_POW_SOLUTION ECDLPPowSolution_new(ECDLP_POW_PROBLEM * problem){
         LOG_POINT("*", problem->epoch_instance->P, problem->epoch_instance->elliptic_curve);
         LOG_simple("\n");
     }else{
-        LOG("no solution could be found for the first problem");
+        LOG("no solution could be found for the second problem");
     }
-
+    end = clock();
+    time_spent = (double)(end - begin)/CLOCKS_PER_SEC;
+    printf("Time for calculating the solution of the PoW %lf seg.\n",time_spent);
 
     return solution_ecdlp;
 
@@ -242,7 +279,7 @@ bool ValidEllipticCurve(EC_GROUP * E, BIGNUM * cardinal){
     BN_free(b);
     BN_CTX_free(bn_ctx);
 
-    LOG_BN_dec("cardinal of the valid curve: ", cardinal);
+    //LOG_BN_dec("cardinal of the valid curve: ", cardinal);
     return TRUE;
 
 
@@ -270,7 +307,6 @@ EC_GROUP * E_Gen(BIGNUM * p, const unsigned * hash){
     BIGNUM *prev = BN_new();
     BN_CTX *bn_ctx = BN_CTX_new();
     BIGNUM *cardinal = BN_new();
-    int counter = 0;
     EC_GROUP * E = EC_GROUP_new(EC_GFp_simple_method());
 
     time_t begin, end;
@@ -299,11 +335,11 @@ EC_GROUP * E_Gen(BIGNUM * p, const unsigned * hash){
         begin = clock();
         //cardinal = Cardinal_EllipticCurveGroup(E);
         cardinal = Schoofs_Elkies_Atkin(E);
-        LOG_BN_dec("cardinal found", cardinal);
+        //LOG_BN_dec("cardinal found", cardinal);
         end = clock();
 
         time_spent = (double)(end - begin)/CLOCKS_PER_SEC;
-        printf("CARDINAL COMPUTING TIME %lf\n", time_spent);
+        //ntf("CARDINAL COMPUTING TIME %lf\n", time_spent);
         
         if(ValidEllipticCurve(E, cardinal)){
             LOG_BN_DEBUG("Valid elliptic curve E_A: ", E_A);
@@ -312,11 +348,9 @@ EC_GROUP * E_Gen(BIGNUM * p, const unsigned * hash){
             break;
         }
 
-        counter++;
         BN_add_word(i,1);
     }
 
-    printf(" ----- TIMES for generating the curve %d ----" , counter);
 
     BN_free(prev);
     BN_free(E_A);
@@ -388,7 +422,6 @@ EC_POINT * P_Gen(const unsigned char * hash, int size, EC_GROUP * E){
     BIGNUM * x = BN_new();
     BIGNUM * y = BN_new();
     BIGNUM * cardinal = Schoofs_Elkies_Atkin(E);
-    LOG_BN_dec("cardinal  ", cardinal);
     BIGNUM * cofactor = BN_new();
     BN_one(cofactor);
     EC_POINT * point = EC_POINT_new(E);
