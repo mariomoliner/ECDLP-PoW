@@ -1,11 +1,11 @@
-#include "ECDLP_PoW.h"
+#include "ECDLP_POW/ECDLP_PoW.h"
 #include <stdio.h>
 #include <string.h>
 #include <openssl/sha.h>
-#include "Utility.h"
+#include "ECDLP_POW/Utility.h"
 #include <openssl/bn.h>
 #include <openssl/ec.h>
-#include "Logging.h"
+#include "ECDLP_POW/Logging.h"
 
 #include <pthread.h>
 #include <flint/fmpz.h>
