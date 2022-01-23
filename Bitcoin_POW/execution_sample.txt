@@ -1,0 +1,1 @@
+gcc -g Pow.c -o Pow -lssl -lcrypto -I/usr/include/openssl

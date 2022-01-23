@@ -597,6 +597,9 @@ char * generate_random_chunk(int number) {
 int PollardRho(EC_GROUP * elliptic_curve, EC_POINT * P, EC_POINT * Q, BIGNUM * N){
 	BIGNUM * bn_ctx = BN_CTX_new();
 
+	BIGNUM * ECW = BN_new();
+
+
 	BIGNUM * gcd = BN_new();
 	BIGNUM * p = BN_new();
     BIGNUM * a = BN_new();
@@ -628,6 +631,8 @@ int PollardRho(EC_GROUP * elliptic_curve, EC_POINT * P, EC_POINT * Q, BIGNUM * N
 	BIGNUM * b_i = BN_new();
 	BIGNUM * a_2i = BN_new();
 	BIGNUM * b_2i = BN_new();
+
+	BN_zero(ECW);
 
 	while(i<=3){
 
@@ -669,6 +674,8 @@ int PollardRho(EC_GROUP * elliptic_curve, EC_POINT * P, EC_POINT * Q, BIGNUM * N
 			b_2i = h_func(X_2i,aux2, elliptic_curve);
 			f_func(X_2i, elliptic_curve, P,Q);
 
+			BN_add_word(ECW, 1);
+
 			if(EC_POINT_cmp(elliptic_curve,X_2i,X_i,bn_ctx) == 0){ //candidate found?
 
 
@@ -695,6 +702,8 @@ int PollardRho(EC_GROUP * elliptic_curve, EC_POINT * P, EC_POINT * Q, BIGNUM * N
 						BN_free(aux1);
 						BN_free(aux2);
 						BN_free(aux3);
+
+						///LOG_BN_dec("Number of ECW: ", ECW);
 
 						BN_copy(N,solution);
 						return 0;

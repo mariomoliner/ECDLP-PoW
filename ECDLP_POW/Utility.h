@@ -15,7 +15,6 @@ typedef int bool;
 
 
 
-void Print_hash(const unsigned char * hash, int size);
 
 //next prime following a given one
 BIGNUM * Next_prime(BIGNUM * num);
