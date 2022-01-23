@@ -1,1 +1,0 @@
-gcc -g Main.c ECDLP_PoW.c Utility.c SEA/src/SEA/*.c -o Main -lssl -lcrypto -I/usr/include/openssl -I/usr/include/flint/ -lflint -lgmp -w
